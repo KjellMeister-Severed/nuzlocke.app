@@ -17,7 +17,7 @@
 .pkm.pkm-hoennian {
   filter: contrast(1.5);
   transform: translateY(-5px);
-  background-image: url(./routes/assets/img/pokemon-blazingem-v1.png) !important;
+  background-image: url(../img/pokemon-blazingem-v1.png) !important;
 }
 
 .pkm.pkm-mallarki {

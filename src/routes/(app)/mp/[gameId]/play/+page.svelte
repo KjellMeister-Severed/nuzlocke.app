@@ -1,5 +1,5 @@
 <script>
-  import { onMount, afterUpdate, setContext, getContext } from 'svelte'
+  import { onMount, onDestroy, afterUpdate, setContext, getContext } from 'svelte'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
   import { fade, slide } from 'svelte/transition'
@@ -16,7 +16,7 @@
   import debounce from '$lib/utils/debounce'
 
   import { Expanded as Games, RegionMap } from '$lib/data/games.js'
-  import { read as storeRead } from '$lib/store'
+  import { activeGame, getGameStore, IDS, read as storeRead } from '$lib/store'
 
   import { fetchDataForGame, fetchLeague } from '$utils/fetchers'
   import { normalise } from '$utils/string'
@@ -25,7 +25,6 @@
     fetchMpGame,
     fetchPlayerData,
     loadMpSession,
-    createMpGameStore,
     syncPlayerData,
     mpPlayers,
     mpGameInfo
@@ -44,6 +43,8 @@
   let search = ''
   let loading = true
   let error = ''
+  let originalActiveGame
+  let unsubSync
   let isOwner = false
   let session = null
   let playerInfo = null
@@ -136,13 +137,26 @@
 
     const rawData = typeof pData.game_data === 'string' ? pData.game_data : JSON.stringify(pData.game_data || {})
 
+    // Bridge MP data into localStorage so existing components
+    // (ProgressModal, PokemonSelector team management, etc.) work correctly.
+    // They call readdata()/getGameStore()/getTeams() which read from localStorage.
+    const mpLocalId = `mp_${mpGameId}_${viewingPlayerId}`
+    originalActiveGame = localStorage.getItem(IDS.active)
+
+    localStorage.setItem(IDS.game(mpLocalId), rawData)
+    activeGame.set(mpLocalId)
+
+    // Use the standard localStorage-backed store so all components share it
+    gameStore = getGameStore(mpLocalId)
+    // Ensure store has latest data (handles cached store from previous visit)
+    gameStore.set(rawData)
+
+    // For owner: sync store changes back to server
     if (isOwner) {
-      // Create a writable store that syncs to server
-      gameStore = createMpGameStore(mpGameId, viewingPlayerId, session.pincode, rawData)
-    } else {
-      // Read-only: create a non-syncing store
-      const { writable } = await import('svelte/store')
-      gameStore = writable(rawData)
+      unsubSync = gameStore.subscribe((val) => {
+        if (!val) return
+        syncPlayerData(mpGameId, viewingPlayerId, session.pincode, val)
+      })
     }
 
     gameStore.subscribe(
@@ -161,6 +175,16 @@
     if (browser) setTimeout(() => document.body.classList.add('lazy-pkm'), 0)
 
     loading = false
+  })
+
+  onDestroy(() => {
+    // Clean up server sync subscription
+    if (unsubSync) unsubSync()
+    // Restore original active game so normal gameplay isn't affected
+    if (browser && originalActiveGame) {
+      localStorage.setItem(IDS.active, originalActiveGame)
+      activeGame.set(originalActiveGame)
+    }
   })
 </script>
 

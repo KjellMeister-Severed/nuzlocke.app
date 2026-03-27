@@ -5,6 +5,33 @@ import { DATA } from '$utils/rewrites'
 import { normalise } from '$utils/string'
 
 const data = {}
+
+// Fetch pokemon data for a specific game key (used by multiplayer)
+export const fetchDataForGame = async (gen) => {
+  if (!browser) return
+
+  const uri = `${DATA}/pokemon/${gen}.json`
+
+  if (data[gen]) return data[gen]
+
+  if (!data[uri]) {
+    data[uri] = fetch(uri)
+      .then((res) => res.json())
+      .then((data) => {
+        let result = { idMap: {}, aliasMap: {}, nameMap: {} }
+        for (const d of data) {
+          result.idMap[d.num] = d
+          result.aliasMap[normalise(d.alias)] = d
+          result.nameMap[normalise(d.name.toLowerCase())] = d
+        }
+        return result
+      })
+  }
+
+  data[gen] = await data[uri]
+  return data[gen]
+}
+
 export const fetchData = async () => {
   if (!browser) return
 

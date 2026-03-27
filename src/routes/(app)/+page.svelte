@@ -29,6 +29,7 @@
   let links = [
     { title: 'New Game', href: '/new', color: 'blue' },
     { title: 'Load Game', href: '/saves', color: 'pink' },
+    { title: 'Multiplayer', href: '/mp', color: 'purple' },
     { title: 'Guides', href: '/guides', color: 'green' }
   ]
 
@@ -247,6 +248,9 @@
   }
   .yellow {
     @apply hover:text-yellow-400;
+  }
+  .purple {
+    @apply hover:text-purple-400;
   }
 
   :global(.game--emkaizo),

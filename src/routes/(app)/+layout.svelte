@@ -16,10 +16,12 @@
 
   let path = $page.url.pathname
 
-  const [, gameKey] = browser ? readdata() : []
+  const isMpRoute = path.startsWith('/mp/')
+  const [, gameKey] = browser && !isMpRoute ? readdata() : []
   setContext('region', RegionMap[gameKey] ?? 'unknown')
 
   afterUpdate(() => {
+    if (isMpRoute) return
     const [, id, , game] = readdata()
 
     if (id === 'blazingem') deferStyles('/assets/pokemon-blazingem.css')
@@ -76,6 +78,8 @@
 >
   {#if ['/game', '/box', '/graveyard'].includes(path)}
     <GameHeading />
+  {:else if isMpRoute && path.includes('/play')}
+    <!-- MP play page has its own nav -->
   {:else}
     <NavHeading />
   {/if}

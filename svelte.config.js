@@ -1,9 +1,9 @@
 import preprocess from 'svelte-preprocess';
-import vercel from '@sveltejs/adapter-vercel';
+import node from '@sveltejs/adapter-node';
 
 export default {
   kit: {
-    adapter: vercel()
+    adapter: node()
   },
 
   preprocess: [

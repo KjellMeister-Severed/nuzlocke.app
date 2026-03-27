@@ -16,8 +16,9 @@
 
   let path = $page.url.pathname
 
-  const isMpRoute = path.startsWith('/mp/')
-  const [, gameKey] = browser && !isMpRoute ? readdata() : []
+  $: path = $page.url.pathname
+  $: isMpRoute = path.startsWith('/mp/')
+  const [, gameKey] = browser && !path.startsWith('/mp/') ? readdata() : []
   setContext('region', RegionMap[gameKey] ?? 'unknown')
 
   afterUpdate(() => {

@@ -16,7 +16,8 @@
   import debounce from '$lib/utils/debounce'
 
   import { Expanded as Games, RegionMap } from '$lib/data/games.js'
-  import { activeGame, getGameStore, IDS, read as storeRead } from '$lib/store'
+  import { activeGame, savedGames, format, getGameStore, IDS, read as storeRead } from '$lib/store'
+  import { settingsDefault } from '$lib/components/Settings/_data'
 
   import { fetchDataForGame, fetchLeague } from '$utils/fetchers'
   import { normalise } from '$utils/string'
@@ -44,6 +45,7 @@
   let loading = true
   let error = ''
   let originalActiveGame
+  let originalSavedGames
   let unsubSync
   let isOwner = false
   let session = null
@@ -115,75 +117,103 @@
   }
 
   onMount(async () => {
-    session = loadMpSession()
+    try {
+      session = loadMpSession()
 
-    // Check if this player is the owner
-    isOwner = session?.gameId === mpGameId && session?.playerId === viewingPlayerId
+      // Check if this player is the owner
+      isOwner = session?.gameId === mpGameId && session?.playerId === viewingPlayerId
 
-    // Fetch game info
-    await fetchMpGame(mpGameId)
+      // Fetch game info
+      await fetchMpGame(mpGameId)
 
-    // Fetch player data
-    const pData = await fetchPlayerData(mpGameId, viewingPlayerId)
-    if (!pData || pData.error) {
-      error = 'Player not found'
+      // Fetch player data
+      const pData = await fetchPlayerData(mpGameId, viewingPlayerId)
+      if (!pData || pData.error) {
+        error = 'Player not found'
+        loading = false
+        return
+      }
+
+      playerInfo = pData
+      gameKey = pData.pokemon_game
+      mpSetGameKey(gameKey)
+
+      const rawData = typeof pData.game_data === 'string' ? pData.game_data : JSON.stringify(pData.game_data || {})
+
+      // Bridge MP data into localStorage so existing components
+      // (ProgressModal, PokemonSelector team management, etc.) work correctly.
+      // They call readdata()/getGameStore()/getTeams()/getGen() which read from localStorage.
+      const mpLocalId = `mp_${mpGameId}_${viewingPlayerId}`
+      originalActiveGame = localStorage.getItem(IDS.active)
+      originalSavedGames = localStorage.getItem(IDS.saves)
+
+      localStorage.setItem(IDS.game(mpLocalId), rawData)
+
+      // Add a temporary savedGames entry so getGen()/readdata() return the correct
+      // pokemon game key. Components like ProgressModal depend on this.
+      const mpSaveEntry = format({
+        id: mpLocalId,
+        created: +new Date(),
+        name: playerInfo.name || 'MP',
+        game: gameKey,
+        settings: settingsDefault,
+        attempts: 1
+      })
+      savedGames.update((current) =>
+        current ? current + ',' + mpSaveEntry : mpSaveEntry
+      )
+
+      activeGame.set(mpLocalId)
+
+      // Use the standard localStorage-backed store so all components share it
+      gameStore = getGameStore(mpLocalId)
+      // Ensure store has latest data (handles cached store from previous visit)
+      gameStore.set(rawData)
+
+      // For owner: sync store changes back to server
+      if (isOwner) {
+        unsubSync = gameStore.subscribe((val) => {
+          if (!val) return
+          syncPlayerData(mpGameId, viewingPlayerId, session.pincode, val)
+        })
+      }
+
+      gameStore.subscribe(
+        storeRead((game) => {
+          gameData = game
+        })
+      )
+
+      const gameInfo = Games[gameKey]
+      if (gameInfo) {
+        await fetchRoute(gameInfo.pid)
+      }
+
+      if (gameKey === 'blazingem') deferStyles('/assets/pokemon-blazingem.css')
+      if (gameKey?.includes('radred')) deferStyles('/assets/pokemon-radicalred.css')
+      if (browser) setTimeout(() => document.body.classList.add('lazy-pkm'), 0)
+
       loading = false
-      return
+    } catch (e) {
+      console.error('MP play page error:', e)
+      error = 'Failed to load game data'
+      loading = false
     }
-
-    playerInfo = pData
-    gameKey = pData.pokemon_game
-    mpSetGameKey(gameKey)
-
-    const rawData = typeof pData.game_data === 'string' ? pData.game_data : JSON.stringify(pData.game_data || {})
-
-    // Bridge MP data into localStorage so existing components
-    // (ProgressModal, PokemonSelector team management, etc.) work correctly.
-    // They call readdata()/getGameStore()/getTeams() which read from localStorage.
-    const mpLocalId = `mp_${mpGameId}_${viewingPlayerId}`
-    originalActiveGame = localStorage.getItem(IDS.active)
-
-    localStorage.setItem(IDS.game(mpLocalId), rawData)
-    activeGame.set(mpLocalId)
-
-    // Use the standard localStorage-backed store so all components share it
-    gameStore = getGameStore(mpLocalId)
-    // Ensure store has latest data (handles cached store from previous visit)
-    gameStore.set(rawData)
-
-    // For owner: sync store changes back to server
-    if (isOwner) {
-      unsubSync = gameStore.subscribe((val) => {
-        if (!val) return
-        syncPlayerData(mpGameId, viewingPlayerId, session.pincode, val)
-      })
-    }
-
-    gameStore.subscribe(
-      storeRead((game) => {
-        gameData = game
-      })
-    )
-
-    const gameInfo = Games[gameKey]
-    if (gameInfo) {
-      await fetchRoute(gameInfo.pid)
-    }
-
-    if (gameKey === 'blazingem') deferStyles('/assets/pokemon-blazingem.css')
-    if (gameKey?.includes('radred')) deferStyles('/assets/pokemon-radicalred.css')
-    if (browser) setTimeout(() => document.body.classList.add('lazy-pkm'), 0)
-
-    loading = false
   })
 
   onDestroy(() => {
     // Clean up server sync subscription
     if (unsubSync) unsubSync()
-    // Restore original active game so normal gameplay isn't affected
-    if (browser && originalActiveGame) {
-      localStorage.setItem(IDS.active, originalActiveGame)
-      activeGame.set(originalActiveGame)
+    // Restore original active game and saved games
+    if (browser) {
+      if (originalActiveGame) {
+        localStorage.setItem(IDS.active, originalActiveGame)
+        activeGame.set(originalActiveGame)
+      }
+      if (originalSavedGames !== undefined) {
+        localStorage.setItem(IDS.saves, originalSavedGames || '')
+        savedGames.set(originalSavedGames)
+      }
     }
   })
 </script>

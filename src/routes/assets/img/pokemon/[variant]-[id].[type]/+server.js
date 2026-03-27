@@ -1,4 +1,5 @@
-const SPRITE_CDN = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+const SPRITE_CDN =
+  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
 
 export async function GET({ params }) {
   const { id, variant } = params

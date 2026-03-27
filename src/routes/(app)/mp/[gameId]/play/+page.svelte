@@ -172,8 +172,8 @@
   <Loader />
 {:else if error}
   <div class="container mx-auto pt-24 text-center">
-    <p class="text-red-400">{error}</p>
-    <a href="/mp/{mpGameId}" class="mt-4 inline-block text-blue-400 underline">Back to Lobby</a>
+    <p class="text-red-600 dark:text-red-400">{error}</p>
+    <a href="/mp/{mpGameId}" class="mt-4 inline-block text-blue-600 underline dark:text-blue-400">Back to Lobby</a>
   </div>
 {:else if gameData && route}
   <MpNav

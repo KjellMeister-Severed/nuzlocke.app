@@ -68,8 +68,13 @@
 
 <style lang="postcss">
   .switcher {
-    @apply fixed right-2 top-14 z-[9998] rounded-lg border border-gray-600 bg-gray-800/95 shadow-lg backdrop-blur;
+    @apply fixed right-2 top-14 z-[9998] rounded-lg border-2 shadow-lg;
+    @apply border-gray-300 bg-white/95 backdrop-blur;
     min-width: 180px;
+  }
+
+  :global(.dark) .switcher {
+    @apply border-gray-600 bg-gray-800/95;
   }
 
   .toggle {
@@ -85,14 +90,30 @@
   }
 
   .player-list {
-    @apply flex flex-col border-t border-gray-700;
+    @apply flex flex-col border-t border-gray-200;
+  }
+
+  :global(.dark) .player-list {
+    @apply border-gray-700;
   }
 
   .player-item {
-    @apply flex items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-gray-700/50;
+    @apply flex items-center justify-between px-3 py-2 text-left text-sm transition;
+  }
+
+  .player-item:hover {
+    @apply bg-gray-100;
+  }
+
+  :global(.dark) .player-item:hover {
+    @apply bg-gray-700/50;
   }
 
   .player-item.active {
+    @apply bg-blue-50;
+  }
+
+  :global(.dark) .player-item.active {
     @apply bg-blue-500/10;
   }
 
@@ -101,6 +122,10 @@
   }
 
   .name {
+    @apply text-gray-800;
+  }
+
+  :global(.dark) .name {
     @apply text-gray-200;
   }
 
@@ -109,14 +134,34 @@
   }
 
   .tag.you {
+    @apply bg-green-100 text-green-700;
+  }
+
+  :global(.dark) .tag.you {
     @apply bg-green-500/20 text-green-400;
   }
 
   .tag.viewing {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  :global(.dark) .tag.viewing {
     @apply bg-blue-500/20 text-blue-400;
   }
 
   .back-link {
-    @apply border-t border-gray-700 px-3 py-2 text-xs text-gray-400 transition hover:text-white;
+    @apply border-t border-gray-200 px-3 py-2 text-xs text-gray-500 transition;
+  }
+
+  .back-link:hover {
+    @apply text-gray-900;
+  }
+
+  :global(.dark) .back-link {
+    @apply border-gray-700 text-gray-400;
+  }
+
+  :global(.dark) .back-link:hover {
+    @apply text-white;
   }
 </style>

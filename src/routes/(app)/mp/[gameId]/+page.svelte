@@ -4,7 +4,7 @@
   import { page } from '$app/stores'
 
   import { ScreenContainer } from '$lib/components/containers'
-  import { Button, Loader, Logo } from '$lib/components/core'
+  import { Button, Input, Loader, Logo } from '$lib/components/core'
   import { Game } from '$icons'
 
   import { Expanded as Games } from '$lib/data/games'
@@ -103,18 +103,18 @@
   {#if loading}
     <Loader />
   {:else if error}
-    <p class="text-center text-red-400">{error}</p>
+    <p class="text-center text-red-500">{error}</p>
   {:else}
     <div class="mx-auto flex max-w-2xl flex-col gap-y-6">
 
       <!-- Invite link -->
-      <div class="flex items-center gap-x-2 rounded border border-gray-600 bg-gray-800/50 p-3">
-        <span class="text-sm text-gray-400">Invite Link:</span>
-        <input
-          type="text"
-          readonly
+      <div class="flex items-center gap-x-2">
+        <span class="shrink-0 text-sm text-gray-500 dark:text-gray-400">Invite:</span>
+        <Input
+          rounded
+          placeholder="Invite link"
           value={browser ? `${window.location.origin}/mp/${gameId}` : ''}
-          class="flex-1 rounded border border-gray-600 bg-gray-700 p-1.5 text-xs text-gray-300"
+          className="flex-1 text-xs"
         />
         <Button rounded on:click={copyInviteLink} className="text-xs">
           {copied ? 'Copied!' : 'Copy'}
@@ -123,14 +123,14 @@
 
       <!-- Players list -->
       <div>
-        <h3 class="mb-3 text-lg font-bold text-gray-200">Players ({$mpPlayers.length})</h3>
+        <h3 class="mb-3 text-base font-bold">Players ({$mpPlayers.length})</h3>
 
         {#if $mpPlayers.length === 0}
-          <p class="text-sm text-gray-400">No players have joined yet. Be the first!</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">No players have joined yet. Be the first!</p>
         {:else}
           <div class="flex flex-col gap-y-2">
             {#each $mpPlayers as player}
-              <div class="flex items-center justify-between rounded border border-gray-600 bg-gray-800/30 p-3">
+              <div class="player-row">
                 <div class="flex items-center gap-x-3">
                   {#if Games[player.pokemon_game]?.logo}
                     <Logo
@@ -141,8 +141,8 @@
                     />
                   {/if}
                   <div>
-                    <span class="font-bold text-white">{player.name}</span>
-                    <span class="ml-2 text-xs text-gray-400">
+                    <span class="font-bold">{player.name}</span>
+                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
                       {Games[player.pokemon_game]?.title || player.pokemon_game}
                     </span>
                   </div>
@@ -150,7 +150,7 @@
 
                 <div class="flex gap-x-2">
                   {#if isMySession && session.playerId === player.id}
-                    <Button rounded on:click={playAsMe} className="text-xs bg-green-600">
+                    <Button rounded on:click={playAsMe} className="text-xs">
                       Play
                     </Button>
                   {:else if isMySession}
@@ -172,32 +172,31 @@
         {/if}
       </div>
 
-      <!-- Join form (show if not joined yet for this game) -->
+      <!-- Join form -->
       {#if !isMySession}
-        <div class="rounded-lg border border-green-500/30 bg-gray-800/50 p-6">
-          <h3 class="mb-4 text-lg font-bold text-green-400">Join this Game</h3>
+        <div>
+          <h3 class="mb-3 text-base font-bold text-green-600 dark:text-green-400">Join this Game</h3>
 
           <div class="flex flex-col gap-y-3">
-            <input
-              type="text"
-              bind:value={playerName}
+            <Input
+              rounded
               placeholder="Your name"
-              maxlength="26"
-              class="w-full rounded border border-gray-600 bg-gray-700 p-2 text-sm text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              maxlength={26}
+              bind:value={playerName}
             />
 
-            <input
-              type="password"
+            <Input
+              rounded
+              placeholder="PIN code (4+ chars)"
+              maxlength={20}
               bind:value={pincode}
-              placeholder="PIN code (4+ chars, to protect your data)"
-              class="w-full rounded border border-gray-600 bg-gray-700 p-2 text-sm text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
             />
 
             <div>
-              <p class="mb-2 text-sm text-gray-400">Select your Pokémon game:</p>
+              <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">Select your Pokémon game:</p>
               <select
                 bind:value={selectedPokemonGame}
-                class="w-full rounded border border-gray-600 bg-gray-700 p-2 text-sm text-white focus:border-green-500 focus:outline-none"
+                class="game-select"
               >
                 <option value="">-- Select a game --</option>
                 {#each Object.entries(validGames) as [id, game]}
@@ -216,13 +215,13 @@
             </Button>
 
             {#if joinError}
-              <p class="text-sm text-red-400">{joinError}</p>
+              <p class="text-sm text-red-500">{joinError}</p>
             {/if}
           </div>
         </div>
       {:else}
         <div class="flex justify-center">
-          <Button rounded on:click={playAsMe} className="text-lg px-8 py-3 bg-green-600">
+          <Button rounded solid on:click={playAsMe} className="text-lg px-8 py-3">
             Start Playing
           </Button>
         </div>
@@ -230,3 +229,17 @@
     </div>
   {/if}
 </ScreenContainer>
+
+<style lang="postcss">
+  .player-row {
+    @apply flex items-center justify-between rounded-lg border-2 p-3;
+    @apply border-gray-200 dark:border-gray-700;
+  }
+
+  .game-select {
+    @apply w-full rounded-lg border-2 p-2 text-sm h-10;
+    @apply border-gray-300 bg-white text-gray-900;
+    @apply dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-transparent;
+  }
+</style>

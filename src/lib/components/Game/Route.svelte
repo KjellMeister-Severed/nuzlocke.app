@@ -268,12 +268,12 @@
   .route-list {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 0.25rem;
   }
 
   @media (min-width: theme('screens.lg')) {
     .route-list {
-      gap: 0.125rem;
+      gap: 0.375rem;
     }
   }
 

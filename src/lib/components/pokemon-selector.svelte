@@ -659,22 +659,31 @@
     gap: 0.5rem 0.5rem;
     width: 100%;
     align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    transition: opacity 0.2s;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.625rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: all 0.15s ease;
   }
 
   :global(.dark) .psel {
-    border-bottom-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.025);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   .psel:hover {
-    background: rgba(0, 0, 0, 0.01);
-    border-radius: 0.5rem;
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
   }
 
   :global(.dark) .psel:hover {
-    background: rgba(255, 255, 255, 0.015);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   }
 
   .psel--gray {
@@ -685,7 +694,7 @@
     .psel {
       grid-template-columns: minmax(7rem, 10rem) 2fr 1fr 1fr 1fr auto;
       gap: 0.5rem;
-      padding: 0.375rem 0.5rem;
+      padding: 0.5rem 0.75rem;
     }
 
     .psel--wide {

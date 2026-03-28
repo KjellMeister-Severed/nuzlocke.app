@@ -123,10 +123,23 @@
 <style lang="postcss">
   .pvp {
     margin: 0.75rem 0;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
+    padding: 0.75rem 0.75rem 0.75rem 1rem;
+    border-radius: 0.625rem;
     border: 1px solid rgba(229, 231, 235, 1);
     background: rgba(249, 250, 251, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pvp::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(168, 85, 247, 0.4));
+    border-radius: 3px 0 0 3px;
   }
 
   :global(.dark) .pvp {
@@ -137,6 +150,10 @@
   .pvp--done {
     border-color: rgba(187, 247, 208, 1);
     background: rgba(240, 253, 244, 1);
+  }
+
+  .pvp--done::before {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.7), rgba(22, 163, 74, 0.5));
   }
 
   :global(.dark) .pvp--done {

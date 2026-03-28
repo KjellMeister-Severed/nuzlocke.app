@@ -81,13 +81,15 @@
 
   .mpsw__pill--active {
     color: var(--mpsw-active-text, rgba(17, 24, 39, 1));
-    background: var(--mpsw-active-bg, rgba(243, 244, 246, 1));
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    background: var(--mpsw-active-bg, rgba(255, 255, 255, 1));
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1.5px rgba(99, 102, 241, 0.25);
+    font-weight: 600;
   }
 
   :global(.dark) .mpsw__pill--active {
     --mpsw-active-text: rgba(255, 255, 255, 1);
-    --mpsw-active-bg: rgba(55, 65, 81, 1);
+    --mpsw-active-bg: rgba(55, 65, 81, 0.8);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 0 1.5px rgba(129, 140, 248, 0.3);
   }
 
   .mpsw__name {

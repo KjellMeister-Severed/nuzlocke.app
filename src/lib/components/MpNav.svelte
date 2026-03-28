@@ -47,16 +47,32 @@
     left: 0;
     right: 0;
     z-index: 5000;
-    height: 3.25rem;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    background: rgba(255, 255, 255, 0.82);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    height: 3.5rem;
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+
+  .mpnav::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.5), rgba(168, 85, 247, 0.5), rgba(236, 72, 153, 0.3));
+    opacity: 0.7;
   }
 
   :global(.dark) .mpnav {
-    background: rgba(17, 24, 39, 0.85);
-    border-bottom-color: rgba(255, 255, 255, 0.06);
+    background: rgba(17, 24, 39, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  :global(.dark) .mpnav::after {
+    opacity: 0.5;
   }
 
   .mpnav__inner {

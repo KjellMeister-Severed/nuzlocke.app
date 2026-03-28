@@ -72,9 +72,9 @@ export function syncPlayerData(gameId, playerId, pincode, gameData) {
   saveTimeout = setTimeout(async () => {
     try {
       await fetch(
-        `/api/mp/games/${encodeURIComponent(gameId)}/players/${encodeURIComponent(
-          playerId
-        )}`,
+        `/api/mp/games/${encodeURIComponent(
+          gameId
+        )}/players/${encodeURIComponent(playerId)}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

@@ -1,18 +1,16 @@
 <script>
   export let id = 25
 
-  import { createImgUrl, IMG } from '$utils/rewrites'
+  import { createImgUrl } from '$utils/rewrites'
 
   import { flip as animflip } from 'svelte/animate'
   import { fly } from 'svelte/transition'
   import { onMount } from 'svelte'
 
-  import { readdata, summarise, trackData } from '$lib/store'
+  import { trackData } from '$lib/store'
   import { PixelatedContainer } from '$lib/components/containers'
 
-  import { Expanded as Games } from '$lib/data/games'
-  import { Logo, Picture, PIcon, Icon } from '$lib/components/core'
-  import { Deceased } from '$icons'
+  import { Picture } from '$lib/components/core'
 
   const interval = 5000
   const distance = 300
@@ -23,38 +21,12 @@
     id = Math.round(Math.random() * 151)
   }, interval)
 
-  let activeId,
-    active = {},
-    summary = {}
   let links = [
-    { title: 'New Game', href: '/new', color: 'blue' },
-    { title: 'Load Game', href: '/saves', color: 'pink' },
     { title: 'Multiplayer', href: '/mp', color: 'purple' },
     { title: 'Guides', href: '/guides', color: 'green' }
   ]
 
   onMount(() => {
-    const [data, , id, save] = readdata()
-    activeId = id
-    active = save
-    summarise((data) => {
-      summary = data
-
-      console.log(summary)
-    })(data)
-
-    if (active) {
-      links = [
-        {
-          title: 'Continue',
-          href: '/game',
-          color: 'yellow',
-          aria: 'Continue game: ' + active.name
-        },
-        ...links
-      ]
-    }
-
     trackData()
   })
 
@@ -95,80 +67,31 @@
             data-sveltekit-preload-data
             rel="external"
           >
-            {#if title === 'Continue'}
-              {title}
-
-              <div
-                class="-ml-2 flex h-8 flex-row items-center font-sans text-sm font-normal transition group-hover:grayscale-0 md:grayscale"
-              >
-                <Logo
-                  loading="eager"
-                  logo="{Games[active.game].logo}"
-                  alt="{active.game} logo"
-                  pictureClass="game--{active.game}"
-                  class="ml-2 inline"
-                  aspect="48xauto"
-                />
-
-                <PIcon
-                  className="transform scale-75 -mr-1 -mt-0.5"
-                  type="item"
-                  name="poke-ball"
-                />
-                <span>{summary.available.length}</span>
-                <Icon
-                  inline={true}
-                  class="mx-1 h-3 w-3 fill-current"
-                  icon={Deceased}
-                />
-                <span>{summary.deceased.length}</span>
-              </div>
-            {:else}
-              {title}
-            {/if}
+            {title}
           </a>
         {/each}
       </div>
 
       <div class="img__container relative -mx-12 h-full">
-        {#if !summary?.team?.length}
-          {#if !flip}
-            <img
-              {src}
-              rel="external"
-              alt="Pokemon #{id}"
-              class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
-              out:fly={{ y: distance, duration }}
-              in:fly={{ y: -distance, duration }}
-            />
-          {/if}
-          {#if flip}
-            <img
-              {src}
-              rel="external"
-              alt="Pokemon #{id}"
-              class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
-              out:fly={{ y: distance, duration }}
-              in:fly={{ y: -distance, duration }}
-            />
-          {/if}
-        {:else}
-          <div
+        {#if !flip}
+          <img
+            {src}
+            rel="external"
+            alt="Pokemon #{id}"
+            class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
+            out:fly={{ y: distance, duration }}
             in:fly={{ y: -distance, duration }}
-            class="absolute mt-14 -ml-4 inline-grid w-20 origin-left -translate-y-1/2 scale-200 transform grid-cols-2 transition md:mt-12 md:ml-0 md:w-24 md:grid-cols-3"
-          >
-            {#each summary.team as icon, i}
-              <span
-                style="--bob-delay: {(5 * ((i * 11) % 7)) / 10}s"
-                class="bob relative h-8 w-8"
-              >
-                <PIcon
-                  class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                  name={icon}
-                />
-              </span>
-            {/each}
-          </div>
+          />
+        {/if}
+        {#if flip}
+          <img
+            {src}
+            rel="external"
+            alt="Pokemon #{id}"
+            class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
+            out:fly={{ y: distance, duration }}
+            in:fly={{ y: -distance, duration }}
+          />
         {/if}
       </div>
     </PixelatedContainer>

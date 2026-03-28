@@ -1,140 +1,100 @@
 <script>
-  export let game = null
   export let player = null
   export let isOwner = false
   export let gameKey = ''
   export let mpGameId = ''
+  export let players = []
+  export let currentPlayerId = ''
+  export let ownPlayerId = ''
 
-  import { page } from '$app/stores'
   import { Expanded as Games } from '$lib/data/games'
 
   import ThemeToggle from '$lib/components/theme-toggle.svelte'
-  import { Icon, Logo } from '$lib/components/core'
-  import { Game as GameIcon, Box, Grave } from '$icons'
-
-  const pages = [
-    { name: 'Game', link: `/mp/${mpGameId}/play`, icon: GameIcon }
-  ]
+  import { Logo } from '$lib/components/core'
+  import MpPlayerSwitcher from '$lib/components/MpPlayerSwitcher.svelte'
 </script>
 
 <nav>
-  <div class="p-container">
-    <div class="inline-flex items-center">
-      <a href="/mp/{mpGameId}" rel="external" class="home group" aria-label="Back to lobby">
-        {#if gameKey && Games[gameKey]?.logo}
-          <Logo
-            logo="{Games[gameKey].logo}"
-            pictureClass="game--{gameKey}"
-            class="h-10 w-auto max-md:pt-2 sm:w-20 md:mr-4 md:h-auto"
-            alt="{gameKey} logo"
-            aspect="192x96"
-          />
-        {/if}
+  <div class="nav-top">
+    <a href="/mp/{mpGameId}" class="nav-logo" aria-label="Back to lobby">
+      {#if gameKey && Games[gameKey]?.logo}
+        <Logo
+          logo="{Games[gameKey].logo}"
+          pictureClass="game--{gameKey}"
+          class="h-8 w-auto sm:h-10"
+          alt="{gameKey} logo"
+          aspect="192x96"
+        />
+      {/if}
+    </a>
 
-        <h1 class="hidden group-hover:border-black dark:group-hover:border-white lg:block lg:line-clamp-1">
-          {game?.name || 'Multiplayer'}
-        </h1>
-      </a>
-    </div>
-
-    <span class="player-info">
-      <span class="text-sm font-bold">
-        {player?.name || ''}
-      </span>
+    <span class="nav-player">
+      <span class="text-sm font-bold">{player?.name || ''}</span>
       {#if !isOwner}
-        <span class="text-xs text-yellow-600 dark:text-yellow-400">(viewing)</span>
+        <span class="text-tiny text-yellow-600 dark:text-yellow-400">(viewing)</span>
       {/if}
     </span>
 
-    <span class="relative inline-flex">
+    <span class="nav-actions">
       <ThemeToggle />
-
-      {#each pages as p}
-        <a
-          class="link active"
-          href={p.link}
-        >
-          <Icon inline={true} icon={p.icon} />
-          {p.name}
-        </a>
-      {/each}
-
-      <a
-        class="link"
-        href="/mp/{mpGameId}"
-      >
-        Lobby
-      </a>
+      <a href="/mp/{mpGameId}" class="nav-link">Lobby</a>
     </span>
+  </div>
+
+  <div class="nav-players">
+    <MpPlayerSwitcher
+      {players}
+      {currentPlayerId}
+      {mpGameId}
+      {ownPlayerId}
+    />
   </div>
 </nav>
 
 <style lang="postcss">
   nav {
     position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 5000;
-    @apply container mx-auto mb-8 bg-black text-white sm:bg-white sm:text-black md:mb-2;
-  }
-
-  nav :global(.p-container) {
-    @apply px-0;
+    @apply border-b border-gray-200 bg-white;
   }
 
   :global(.dark) nav {
-    @apply sm:bg-gray-800 sm:text-gray-200;
+    @apply border-gray-700 bg-gray-800;
   }
 
-  @media (min-width: theme('screens.sm')) {
-    nav {
-      width: 100%;
-      left: 0;
-      right: 0;
-    }
-
-    nav::before {
-      content: '';
-      background: linear-gradient(white 50%, transparent);
-      @apply absolute -bottom-6 h-6 w-full;
-    }
-
-    :global(.dark) nav::before {
-      background: linear-gradient(theme('colors.gray.800') 50%, transparent);
-    }
+  .nav-top {
+    @apply container mx-auto flex items-center justify-between px-3 py-2;
   }
 
-  h1 {
-    @apply -mb-1.5 border-b-2 border-transparent text-base transition sm:mb-0;
+  .nav-logo {
+    @apply flex items-center;
   }
 
-  a.home {
-    @apply ml-4 -mt-4 inline-flex h-12 items-center md:mt-0 md:-ml-2;
+  .nav-player {
+    @apply hidden items-center gap-x-1.5 sm:flex;
   }
 
-  a.link {
-    @apply inline-flex items-center gap-x-1 border-black p-2 px-3 text-sm transition md:p-4 md:text-base;
+  .nav-actions {
+    @apply flex items-center gap-x-2;
   }
 
-  a.link.active {
-    @apply cursor-default border-b-2 bg-gray-50 text-black;
+  .nav-link {
+    @apply rounded-md px-3 py-1.5 text-sm font-medium transition;
+    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
   }
 
-  a.link:not(.active) {
-    @apply cursor-pointer hover:text-black sm:text-gray-500;
+  :global(.dark) .nav-link {
+    @apply text-gray-300 hover:bg-gray-700 hover:text-white;
   }
 
-  :global(.dark) a.link:not(.active) {
-    @apply text-gray-400 hover:text-gray-100;
+  .nav-players {
+    @apply container mx-auto border-t border-gray-100 px-2;
   }
 
-  :global(.dark) a.link.active {
-    @apply border-b-gray-200 bg-gray-900 text-gray-50 hover:text-gray-100;
-  }
-
-  .player-info {
-    @apply hidden items-center gap-x-2 sm:inline-flex;
-  }
-
-  .p-container {
-    @apply flex items-center justify-between;
+  :global(.dark) .nav-players {
+    @apply border-gray-700;
   }
 </style>

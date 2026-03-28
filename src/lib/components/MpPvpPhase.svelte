@@ -53,10 +53,6 @@
   function handleReport(p1Id, p2Id, winnerId) {
     dispatch('report', { bossId, player1Id: p1Id, player2Id: p2Id, winnerId, pincode })
   }
-
-  function isMyBattle(p1Id, p2Id) {
-    return currentPlayerId === p1Id || currentPlayerId === p2Id
-  }
 </script>
 
 {#if players.length >= 2}
@@ -86,10 +82,8 @@
       {#each pairings as pair}
         {@const battle = findBattle(pair.p1.id, pair.p2.id)}
         {@const winner = getWinnerName(battle)}
-        {@const isMine = isMyBattle(pair.p1.id, pair.p2.id)}
         <div
           class="pvp-battle"
-          class:pvp-mine={isMine}
           class:pvp-decided={!!winner}
         >
           <div class="flex flex-1 items-center gap-x-2">
@@ -114,7 +108,7 @@
             <span class="text-tiny text-green-600 dark:text-green-400">
               🏆 {winner}
             </span>
-          {:else if isMine && isOwner}
+          {:else if isOwner}
             <div class="flex gap-x-1">
               <button
                 class="pvp-btn"
@@ -132,7 +126,7 @@
               </button>
             </div>
           {:else}
-            <span class="text-tiny text-gray-400">Pending</span>
+            <span class="text-tiny text-gray-400">Awaiting result</span>
           {/if}
         </div>
       {/each}
@@ -166,10 +160,6 @@
   .pvp-battle {
     @apply flex items-center justify-between rounded-md px-2 py-1.5;
     @apply bg-white/60 dark:bg-gray-800/40;
-  }
-
-  .pvp-mine {
-    @apply ring-1 ring-amber-300/40 dark:ring-amber-600/30;
   }
 
   .pvp-decided {

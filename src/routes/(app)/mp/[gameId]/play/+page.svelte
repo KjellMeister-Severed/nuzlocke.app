@@ -35,7 +35,6 @@
     mpPvpBattles
   } from '$lib/mpStore'
 
-  import MpPlayerSwitcher from '$lib/components/MpPlayerSwitcher.svelte'
   import MpNav from '$lib/components/MpNav.svelte'
 
   const mpSetGameKey = getContext('mpSetGameKey')
@@ -247,17 +246,12 @@
   </div>
 {:else if gameData && route}
   <MpNav
-    game={$mpGameInfo}
     player={playerInfo}
     {isOwner}
     gameKey={gameKey}
     mpGameId={mpGameId}
-  />
-
-  <MpPlayerSwitcher
     players={$mpPlayers}
     currentPlayerId={viewingPlayerId}
-    {mpGameId}
     ownPlayerId={session?.playerId}
   />
 

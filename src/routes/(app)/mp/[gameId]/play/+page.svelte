@@ -1,5 +1,11 @@
 <script>
-  import { onMount, onDestroy, afterUpdate, setContext, getContext } from 'svelte'
+  import {
+    onMount,
+    onDestroy,
+    afterUpdate,
+    setContext,
+    getContext
+  } from 'svelte'
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
   import { fade, slide } from 'svelte/transition'
@@ -16,7 +22,14 @@
   import debounce from '$lib/utils/debounce'
 
   import { Expanded as Games, RegionMap } from '$lib/data/games.js'
-  import { activeGame, savedGames, format, getGameStore, IDS, read as storeRead } from '$lib/store'
+  import {
+    activeGame,
+    savedGames,
+    format,
+    getGameStore,
+    IDS,
+    read as storeRead
+  } from '$lib/store'
   import { settingsDefault } from '$lib/components/Settings/_data'
 
   import { fetchDataForGame, fetchLeague } from '$utils/fetchers'
@@ -125,7 +138,8 @@
       session = loadMpSession()
 
       // Check if this player is the owner
-      isOwner = session?.gameId === mpGameId && session?.playerId === viewingPlayerId
+      isOwner =
+        session?.gameId === mpGameId && session?.playerId === viewingPlayerId
 
       // Fetch game info
       await fetchMpGame(mpGameId)
@@ -148,7 +162,10 @@
       gameKey = pData.pokemon_game
       mpSetGameKey(gameKey)
 
-      const rawData = typeof pData.game_data === 'string' ? pData.game_data : JSON.stringify(pData.game_data || {})
+      const rawData =
+        typeof pData.game_data === 'string'
+          ? pData.game_data
+          : JSON.stringify(pData.game_data || {})
 
       // Bridge MP data into localStorage so existing components
       // (ProgressModal, PokemonSelector team management, etc.) work correctly.
@@ -200,7 +217,8 @@
       }
 
       if (gameKey === 'blazingem') deferStyles('/assets/pokemon-blazingem.css')
-      if (gameKey?.includes('radred')) deferStyles('/assets/pokemon-radicalred.css')
+      if (gameKey?.includes('radred'))
+        deferStyles('/assets/pokemon-radicalred.css')
       if (browser) setTimeout(() => document.body.classList.add('lazy-pkm'), 0)
 
       loading = false
@@ -234,7 +252,10 @@
 </script>
 
 <svelte:head>
-  <title>Nuzlocke | {playerInfo?.name || 'Multiplayer'} {isOwner ? '' : '(Viewing)'}</title>
+  <title
+    >Nuzlocke | {playerInfo?.name || 'Multiplayer'}
+    {isOwner ? '' : '(Viewing)'}</title
+  >
 </svelte:head>
 
 {#if loading}
@@ -250,8 +271,8 @@
   <MpNav
     player={playerInfo}
     {isOwner}
-    gameKey={gameKey}
-    mpGameId={mpGameId}
+    {gameKey}
+    {mpGameId}
     players={$mpPlayers}
     currentPlayerId={viewingPlayerId}
     ownPlayerId={session?.playerId}
@@ -287,19 +308,35 @@
 
           {#if filter === 'bosses'}
             <span transition:slide={{ duration: 250 }}>
-              <Tabs name="bosses" tabs={bossFilters} bind:selected={bossFilter} />
+              <Tabs
+                name="bosses"
+                tabs={bossFilters}
+                bind:selected={bossFilter}
+              />
             </span>
           {/if}
 
           {#if filter === 'route'}
             <span transition:slide={{ duration: 250 }}>
-              <Tabs name="route" tabs={routeFilters} bind:selected={routeFilter} />
+              <Tabs
+                name="route"
+                tabs={routeFilters}
+                bind:selected={routeFilter}
+              />
             </span>
           {/if}
 
           {#if filter === 'upcoming'}
-            <span transition:slide={{ duration: 250 }} class="mpplay__hidden-count">
-              <Icon inline={true} height="1.2em" icon={Hide} class="-mt-1 mr-1 inline-block fill-current" />
+            <span
+              transition:slide={{ duration: 250 }}
+              class="mpplay__hidden-count"
+            >
+              <Icon
+                inline={true}
+                height="1.2em"
+                icon={Hide}
+                class="-mt-1 mr-1 inline-block fill-current"
+              />
               <b>{latestnav(route, gameData).id}</b> items hidden
             </span>
           {/if}

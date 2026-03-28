@@ -64,11 +64,13 @@
 
   <main class="mphome__main">
     <h1 class="mphome__title">Multiplayer</h1>
-    <p class="mphome__subtitle">Create a new session or join an existing one.</p>
+    <p class="mphome__subtitle">
+      Create a new session or join an existing one.
+    </p>
 
     {#if existingSession}
       <a href="/mp/{existingSession.gameId}" class="mphome__session">
-        <span class="mphome__session-dot"></span>
+        <span class="mphome__session-dot" />
         <span>You have an active session</span>
         <span class="mphome__session-arrow">&rarr;</span>
       </a>
@@ -86,7 +88,12 @@
               bind:value={gameName}
               on:keydown={(e) => e.key === 'Enter' && handleCreate()}
             />
-            <Button rounded on:click={handleCreate} className="w-full" disabled={creating || !gameName.trim()}>
+            <Button
+              rounded
+              on:click={handleCreate}
+              className="w-full"
+              disabled={creating || !gameName.trim()}
+            >
               {creating ? 'Creating...' : 'Create Game'}
             </Button>
           </div>
@@ -123,7 +130,12 @@
             bind:value={joinCode}
             on:keydown={(e) => e.key === 'Enter' && handleJoin()}
           />
-          <Button rounded on:click={handleJoin} className="w-full" disabled={!joinCode.trim()}>
+          <Button
+            rounded
+            on:click={handleJoin}
+            className="w-full"
+            disabled={!joinCode.trim()}
+          >
             Join Game
           </Button>
         </div>
@@ -229,8 +241,13 @@
   }
 
   @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
   .mphome__session-arrow {

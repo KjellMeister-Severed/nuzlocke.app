@@ -32,7 +32,8 @@
       on:click={() => switchTo(player.id)}
       title="{player.name}{isOwn ? ' (You)' : ''}"
     >
-      <span class="mpsw__name" class:mpsw__name--own={isOwn}>{player.name}</span>
+      <span class="mpsw__name" class:mpsw__name--own={isOwn}>{player.name}</span
+      >
       {#if team.length > 0}
         <span class="mpsw__team">
           {#each team as mon}

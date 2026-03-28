@@ -19,7 +19,7 @@
     <a href="/mp/{mpGameId}" class="mpnav__back" aria-label="Back to lobby">
       {#if gameKey && Games[gameKey]?.logo}
         <Logo
-          logo="{Games[gameKey].logo}"
+          logo={Games[gameKey].logo}
           pictureClass="game--{gameKey}"
           class="mpnav__logo"
           alt="{gameKey} logo"
@@ -31,12 +31,7 @@
     </a>
 
     <div class="mpnav__players">
-      <MpPlayerSwitcher
-        {players}
-        {currentPlayerId}
-        {mpGameId}
-        {ownPlayerId}
-      />
+      <MpPlayerSwitcher {players} {currentPlayerId} {mpGameId} {ownPlayerId} />
     </div>
 
     <div class="mpnav__actions">

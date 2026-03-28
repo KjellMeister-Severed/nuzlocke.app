@@ -43,7 +43,9 @@
       .filter((loc) => loc)
       .map((loc) => {
         const pkmn = data[loc]
-        return pkmn?.pokemon ? { name: pkmn.pokemon, nickname: pkmn.nickname } : null
+        return pkmn?.pokemon
+          ? { name: pkmn.pokemon, nickname: pkmn.nickname }
+          : null
       })
       .filter(Boolean)
       .slice(0, 6)
@@ -66,7 +68,12 @@
     joining = true
     joinError = ''
     try {
-      const result = await joinMpGame(gameId, playerName.trim(), pincode, selectedPokemonGame)
+      const result = await joinMpGame(
+        gameId,
+        playerName.trim(),
+        pincode,
+        selectedPokemonGame
+      )
       saveMpSession({ gameId, playerId: result.id, pincode })
       session = { gameId, playerId: result.id, pincode }
       await fetchMpGame(gameId)
@@ -132,7 +139,9 @@
       <div class="lobby__title-row">
         <h1 class="lobby__title">{$mpGameInfo?.name || 'Game Lobby'}</h1>
         {#if isMySession}
-          <button class="lobby__play-btn" on:click={playAsMe}>Play &rarr;</button>
+          <button class="lobby__play-btn" on:click={playAsMe}
+            >Play &rarr;</button
+          >
         {/if}
       </div>
 
@@ -166,15 +175,17 @@
                 <div class="lobby__player-info">
                   {#if Games[player.pokemon_game]?.logo}
                     <Logo
-                      logo="{Games[player.pokemon_game].logo}"
-                      alt="{player.pokemon_game}"
+                      logo={Games[player.pokemon_game].logo}
+                      alt={player.pokemon_game}
                       class="lobby__player-logo"
                       aspect="48xauto"
                     />
                   {/if}
                   <span class="lobby__player-name">{player.name}</span>
                   {#if gymCount > 0}
-                    <span class="lobby__gym-badge">{gymCount} gym{gymCount > 1 ? 's' : ''}</span>
+                    <span class="lobby__gym-badge"
+                      >{gymCount} gym{gymCount > 1 ? 's' : ''}</span
+                    >
                   {/if}
                 </div>
 
@@ -189,12 +200,24 @@
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div class="lobby__player-actions" on:click|stopPropagation>
                   {#if isMySession && session.playerId === player.id}
-                    <button class="lobby__action lobby__action--primary" on:click={playAsMe}>Play</button>
+                    <button
+                      class="lobby__action lobby__action--primary"
+                      on:click={playAsMe}>Play</button
+                    >
                   {:else if isMySession}
-                    <button class="lobby__action" on:click={() => viewPlayer(player.id)}>View</button>
+                    <button
+                      class="lobby__action"
+                      on:click={() => viewPlayer(player.id)}>View</button
+                    >
                   {:else}
-                    <button class="lobby__action" on:click={() => handleEnterPin(player.id)}>Claim</button>
-                    <button class="lobby__action" on:click={() => viewPlayer(player.id)}>View</button>
+                    <button
+                      class="lobby__action"
+                      on:click={() => handleEnterPin(player.id)}>Claim</button
+                    >
+                    <button
+                      class="lobby__action"
+                      on:click={() => viewPlayer(player.id)}>View</button
+                    >
                   {/if}
                 </div>
               </div>
@@ -208,8 +231,18 @@
         <section class="lobby__join">
           <h2 class="lobby__section-title">Join this Game</h2>
           <div class="lobby__join-form">
-            <Input rounded placeholder="Your name" maxlength={26} bind:value={playerName} />
-            <Input rounded placeholder="PIN code (4+ chars)" maxlength={20} bind:value={pincode} />
+            <Input
+              rounded
+              placeholder="Your name"
+              maxlength={26}
+              bind:value={playerName}
+            />
+            <Input
+              rounded
+              placeholder="PIN code (4+ chars)"
+              maxlength={20}
+              bind:value={pincode}
+            />
             <div>
               <p class="lobby__select-label">Pokémon game:</p>
               <select bind:value={selectedPokemonGame} class="lobby__select">
@@ -223,7 +256,11 @@
               rounded
               on:click={handleJoin}
               className="w-full"
-              disabled={joining || !playerName.trim() || !pincode || pincode.length < 4 || !selectedPokemonGame}
+              disabled={joining ||
+                !playerName.trim() ||
+                !pincode ||
+                pincode.length < 4 ||
+                !selectedPokemonGame}
             >
               {joining ? 'Joining...' : 'Join Game'}
             </Button>

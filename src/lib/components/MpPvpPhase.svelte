@@ -46,7 +46,13 @@
   $: allComplete = completedCount === pairings.length && pairings.length > 0
 
   function handleReport(p1Id, p2Id, winnerId) {
-    dispatch('report', { bossId, player1Id: p1Id, player2Id: p2Id, winnerId, pincode })
+    dispatch('report', {
+      bossId,
+      player1Id: p1Id,
+      player2Id: p2Id,
+      winnerId,
+      pincode
+    })
   }
 </script>
 
@@ -75,23 +81,33 @@
           <span
             class="pvp__player"
             class:pvp__player--winner={battle?.winner_id === pair.p1.id}
-          >{pair.p1.name}</span>
+            >{pair.p1.name}</span
+          >
 
           <span class="pvp__vs">vs</span>
 
           <span
             class="pvp__player"
             class:pvp__player--winner={battle?.winner_id === pair.p2.id}
-          >{pair.p2.name}</span>
+            >{pair.p2.name}</span
+          >
 
           <span class="pvp__result">
             {#if winner}
               <span class="pvp__winner-name">{winner}</span>
             {:else if isOwner}
-              <button class="pvp__report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}>
+              <button
+                class="pvp__report-btn"
+                on:click={() =>
+                  handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}
+              >
                 {pair.p1.name}
               </button>
-              <button class="pvp__report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}>
+              <button
+                class="pvp__report-btn"
+                on:click={() =>
+                  handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}
+              >
                 {pair.p2.name}
               </button>
             {:else}

@@ -12,10 +12,10 @@ const MP_KEYS = {
 export const mpSession = writable(null)
 export const mpPlayers = writable([])
 export const mpGameInfo = writable(null)
-export const mpViewingPlayer = writable(null) // the player being viewed (read-only)
+export const mpViewingPlayer = writable(null)
 export const mpIsReadOnly = writable(false)
 export const mpGameData = writable('{}')
-
+export const mpPvpBattles = writable([])
 export function loadMpSession() {
   if (!browser) return null
   const raw = localStorage.getItem(MP_KEYS.session)
@@ -70,17 +70,21 @@ let saveTimeout = null
 export function syncPlayerData(gameId, playerId, pincode, gameData) {
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
-    await fetch(
-      `/api/mp/games/${encodeURIComponent(gameId)}/players/${encodeURIComponent(
-        playerId
-      )}`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pincode, gameData })
-      }
-    )
-  }, 1000) // Debounce saves by 1 second
+    try {
+      await fetch(
+        `/api/mp/games/${encodeURIComponent(gameId)}/players/${encodeURIComponent(
+          playerId
+        )}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pincode, gameData })
+        }
+      )
+    } catch (e) {
+      console.error('MP sync failed:', e)
+    }
+  }, 1000)
 }
 
 // Verify a player's pincode
@@ -194,4 +198,72 @@ export function readMpBox(data) {
       if (customIdMap[id]) custom = customIdMap[id]
       return custom ? { ...p, customId: custom.id, customName: custom.name } : p
     })
+}
+
+// Fetch PvP battles for a game
+export async function fetchPvpBattles(gameId) {
+  try {
+    const res = await fetch(`/api/mp/games/${encodeURIComponent(gameId)}/pvp`)
+    if (!res.ok) return []
+    const data = await res.json()
+    mpPvpBattles.set(data.battles || [])
+    return data.battles || []
+  } catch {
+    return []
+  }
+}
+
+// Record a PvP battle result
+export async function recordPvpBattle(
+  gameId,
+  bossId,
+  player1Id,
+  player2Id,
+  winnerId,
+  pincode
+) {
+  try {
+    const res = await fetch(`/api/mp/games/${encodeURIComponent(gameId)}/pvp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bossId, player1Id, player2Id, winnerId, pincode })
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    await fetchPvpBattles(gameId)
+    return data
+  } catch {
+    return null
+  }
+}
+
+// Parse game_data string to object
+export function parseGameData(player) {
+  if (!player?.game_data) return {}
+  try {
+    return typeof player.game_data === 'string'
+      ? JSON.parse(player.game_data)
+      : player.game_data
+  } catch {
+    return {}
+  }
+}
+
+// Get which bosses a player has defeated (returns array of boss IDs)
+export function getDefeatedBosses(player) {
+  const data = parseGameData(player)
+  return (data.__teams || []).map((t) => t.id)
+}
+
+// Build a map of bossId -> [playerNames] from all players
+export function buildBossDefeatedByMap(players) {
+  const map = {}
+  for (const player of players) {
+    const bossIds = getDefeatedBosses(player)
+    for (const bossId of bossIds) {
+      if (!map[bossId]) map[bossId] = []
+      map[bossId].push(player.name)
+    }
+  }
+  return map
 }

@@ -27,8 +27,12 @@
     fetchPlayerData,
     loadMpSession,
     syncPlayerData,
+    buildBossDefeatedByMap,
+    fetchPvpBattles,
+    recordPvpBattle,
     mpPlayers,
-    mpGameInfo
+    mpGameInfo,
+    mpPvpBattles
   } from '$lib/mpStore'
 
   import MpPlayerSwitcher from '$lib/components/MpPlayerSwitcher.svelte'
@@ -50,7 +54,8 @@
   let isOwner = false
   let session = null
   let playerInfo = null
-  let mpPkmnData = null // pokemon data cache for this game
+  let mpPkmnData = null
+  let defeatedByMap = {}
 
   let filter = 'nuzlocke'
   const filters = [
@@ -126,6 +131,12 @@
       // Fetch game info
       await fetchMpGame(mpGameId)
 
+      // Build defeated-by map from all players' data
+      defeatedByMap = buildBossDefeatedByMap($mpPlayers)
+
+      // Fetch PvP battles
+      await fetchPvpBattles(mpGameId)
+
       // Fetch player data
       const pData = await fetchPlayerData(mpGameId, viewingPlayerId)
       if (!pData || pData.error) {
@@ -200,6 +211,11 @@
       loading = false
     }
   })
+
+  async function handlePvpReport(e) {
+    const { bossId, player1Id, player2Id, winnerId, pincode: pin } = e.detail
+    await recordPvpBattle(mpGameId, bossId, player1Id, player2Id, winnerId, pin)
+  }
 
   onDestroy(() => {
     // Clean up server sync subscription
@@ -332,6 +348,13 @@
           className="-mt-8 sm:mt-0"
           game={{ data: gameData, store: gameStore, key: gameKey }}
           progress={latestnav(route, gameData).id}
+          {defeatedByMap}
+          mpPlayers={$mpPlayers}
+          mpPvpBattles={$mpPvpBattles}
+          currentPlayerId={viewingPlayerId}
+          {isOwner}
+          pincode={session?.pincode || ''}
+          on:report={handlePvpReport}
         />
       </main>
     </div>

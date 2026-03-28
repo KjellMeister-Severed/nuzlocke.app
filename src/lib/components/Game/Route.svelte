@@ -1,5 +1,5 @@
 <script>
-  import { afterUpdate } from 'svelte'
+  import { afterUpdate, createEventDispatcher } from 'svelte'
   import { fade } from 'svelte/transition'
   import {
     patch,
@@ -19,6 +19,7 @@
   import StarterType from '$lib/components/starter-type.svelte'
   import GymCard from '$lib/components/gym-card.svelte'
   import PokemonSelector from '$lib/components/pokemon-selector.svelte'
+  import MpPvpPhase from '$lib/components/MpPvpPhase.svelte'
 
   import {
     hideRouteF,
@@ -39,7 +40,16 @@
     filters,
     search,
     progress = '',
-    className = ''
+    className = '',
+    defeatedByMap = {},
+    mpPlayers = [],
+    mpPvpBattles = [],
+    currentPlayerId = '',
+    isOwner = false,
+    pincode = ''
+
+  const dispatch = createEventDispatcher()
+  $: isMpMode = mpPlayers.length >= 2
   const { store, key, data } = game
 
   let starter = data.__starter || 'fire'
@@ -207,9 +217,23 @@
           game={key}
           id={p.value}
           defeated={bossTeamIds.includes(p.value)}
+          defeatedByPlayers={defeatedByMap[p.value] || []}
           location={p.name}
           type={p.group}
         />
+
+        {#if isMpMode && (p.group === 'gym-leader' || p.group === 'elite-four')}
+          <MpPvpPhase
+            bossId={p.value}
+            bossName={p.name}
+            players={mpPlayers}
+            battles={mpPvpBattles}
+            {currentPlayerId}
+            {isOwner}
+            {pincode}
+            on:report
+          />
+        {/if}
       </li>
     {/if}
   {/each}

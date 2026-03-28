@@ -7,7 +7,8 @@
     forceLevelCap = false,
     forceVs = false,
     defeated = false,
-    reader = false
+    reader = false,
+    defeatedByPlayers = []
 
   // Core leaader data
   let pokemon = [],
@@ -125,6 +126,16 @@
           >
             defeated
           </span>
+        </div>
+      {/if}
+
+      {#if defeatedByPlayers.length > 0 && !loading}
+        <div class="absolute -top-1 left-0 z-40 flex flex-wrap gap-1 md:left-8" in:fade={{ delay: 200 }}>
+          {#each defeatedByPlayers as playerName}
+            <span class="rounded-full bg-green-500 px-2 py-0.5 text-tiny font-bold text-white shadow-sm">
+              {playerName}
+            </span>
+          {/each}
         </div>
       {/if}
 

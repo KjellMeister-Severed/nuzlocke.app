@@ -4,12 +4,13 @@
   import { page } from '$app/stores'
 
   import { ScreenContainer } from '$lib/components/containers'
-  import { Button, Input, Loader, Logo } from '$lib/components/core'
+  import { Button, Input, Loader, Logo, PIcon } from '$lib/components/core'
   import { Game } from '$icons'
 
   import { Expanded as Games } from '$lib/data/games'
   import { filterObj } from '$lib/utils/arr'
   import GamesData from '$lib/data/games.json'
+  import { capitalise } from '$lib/utils/string'
 
   import {
     fetchMpGame,
@@ -17,6 +18,7 @@
     saveMpSession,
     loadMpSession,
     verifyPin,
+    parseGameData,
     mpGameInfo,
     mpPlayers
   } from '$lib/mpStore'
@@ -38,6 +40,24 @@
   let copied = false
 
   let validGames = filterObj(GamesData, (g) => g.supported)
+
+  // Parse player team data for display
+  function getPlayerTeam(player) {
+    const data = parseGameData(player)
+    return (data.__team || [])
+      .filter((loc) => loc)
+      .map((loc) => {
+        const pkmn = data[loc]
+        return pkmn?.pokemon ? { name: pkmn.pokemon, nickname: pkmn.nickname } : null
+      })
+      .filter(Boolean)
+      .slice(0, 6)
+  }
+
+  function getPlayerDefeatedCount(player) {
+    const data = parseGameData(player)
+    return (data.__teams || []).length
+  }
 
   onMount(async () => {
     session = loadMpSession()
@@ -123,50 +143,75 @@
 
       <!-- Players list -->
       <div>
-        <h3 class="mb-3 text-base font-bold">Players ({$mpPlayers.length})</h3>
+        <h3 class="mb-2 text-base font-bold">Players ({$mpPlayers.length})</h3>
 
         {#if $mpPlayers.length === 0}
           <p class="text-sm text-gray-500 dark:text-gray-400">No players have joined yet. Be the first!</p>
         {:else}
-          <div class="flex flex-col gap-y-2">
+          <div class="flex flex-col gap-y-3">
             {#each $mpPlayers as player}
-              <div class="player-row">
-                <div class="flex items-center gap-x-3">
-                  {#if Games[player.pokemon_game]?.logo}
-                    <Logo
-                      logo="{Games[player.pokemon_game].logo}"
-                      alt="{player.pokemon_game}"
-                      class="h-6 w-auto"
-                      aspect="48xauto"
-                    />
-                  {/if}
-                  <div>
-                    <span class="font-bold">{player.name}</span>
-                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                      {Games[player.pokemon_game]?.title || player.pokemon_game}
-                    </span>
+              {@const team = getPlayerTeam(player)}
+              {@const gymCount = getPlayerDefeatedCount(player)}
+              <details class="player-card" open>
+                <summary class="player-summary">
+                  <div class="flex items-center gap-x-3">
+                    {#if Games[player.pokemon_game]?.logo}
+                      <Logo
+                        logo="{Games[player.pokemon_game].logo}"
+                        alt="{player.pokemon_game}"
+                        class="h-6 w-auto"
+                        aspect="48xauto"
+                      />
+                    {/if}
+                    <div>
+                      <span class="font-bold">{player.name}</span>
+                      <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                        {Games[player.pokemon_game]?.title || player.pokemon_game}
+                      </span>
+                    </div>
+                    {#if gymCount > 0}
+                      <span class="rounded-full bg-green-500/20 px-2 py-0.5 text-tiny font-bold text-green-600 dark:text-green-400">
+                        {gymCount} gym{gymCount > 1 ? 's' : ''}
+                      </span>
+                    {/if}
                   </div>
-                </div>
 
-                <div class="flex gap-x-2">
-                  {#if isMySession && session.playerId === player.id}
-                    <Button rounded on:click={playAsMe} className="text-xs">
-                      Play
-                    </Button>
-                  {:else if isMySession}
-                    <Button rounded on:click={() => viewPlayer(player.id)} className="text-xs">
-                      View
-                    </Button>
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
+                  <div class="flex gap-x-2" on:click|stopPropagation>
+                    {#if isMySession && session.playerId === player.id}
+                      <Button rounded on:click={playAsMe} className="text-xs">
+                        Play
+                      </Button>
+                    {:else if isMySession}
+                      <Button rounded on:click={() => viewPlayer(player.id)} className="text-xs">
+                        View
+                      </Button>
+                    {:else}
+                      <Button rounded on:click={() => handleEnterPin(player.id)} className="text-xs">
+                        This is me
+                      </Button>
+                      <Button rounded on:click={() => viewPlayer(player.id)} className="text-xs">
+                        View
+                      </Button>
+                    {/if}
+                  </div>
+                </summary>
+
+                <div class="player-detail">
+                  {#if team.length > 0}
+                    <div class="flex items-center gap-x-1">
+                      <span class="mr-1 text-tiny font-medium text-gray-500 dark:text-gray-400">Team:</span>
+                      {#each team as mon}
+                        <span class="inline-flex items-center" title={mon.nickname || capitalise(mon.name)}>
+                          <PIcon name={mon.name} className="-m-3 scale-90" />
+                        </span>
+                      {/each}
+                    </div>
                   {:else}
-                    <Button rounded on:click={() => handleEnterPin(player.id)} className="text-xs">
-                      This is me
-                    </Button>
-                    <Button rounded on:click={() => viewPlayer(player.id)} className="text-xs">
-                      View
-                    </Button>
+                    <span class="text-tiny text-gray-400 dark:text-gray-500">No team yet</span>
                   {/if}
                 </div>
-              </div>
+              </details>
             {/each}
           </div>
         {/if}
@@ -231,9 +276,21 @@
 </ScreenContainer>
 
 <style lang="postcss">
-  .player-row {
-    @apply flex items-center justify-between rounded-lg border-2 p-3;
+  .player-card {
+    @apply rounded-lg border-2;
     @apply border-gray-200 dark:border-gray-700;
+  }
+
+  .player-summary {
+    @apply flex cursor-pointer list-none items-center justify-between p-3;
+  }
+
+  .player-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .player-detail {
+    @apply border-t border-gray-200 px-3 py-2 dark:border-gray-700;
   }
 
   .game-select {

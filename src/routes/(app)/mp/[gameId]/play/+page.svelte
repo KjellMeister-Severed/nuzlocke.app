@@ -28,12 +28,16 @@
     format,
     getGameStore,
     IDS,
-    read as storeRead
+    read as storeRead,
+    readBox,
+    readTeam,
+    readTeams,
+    patch
   } from '$lib/store'
   import { settingsDefault } from '$lib/components/Settings/_data'
 
   import { fetchDataForGame, fetchLeague } from '$utils/fetchers'
-  import { normalise } from '$utils/string'
+  import { normalise, capitalise } from '$utils/string'
 
   import {
     fetchMpGame,
@@ -54,15 +58,12 @@
   import { NuzlockeGroups } from '$lib/data/states'
   import { Grave, GraveRow, Fog } from '../../../graveyard'
   import { chunk } from '$utils/arr'
-  import { capitalise } from '$utils/string'
   import { summarise } from '$utils/badges'
   import { locid } from '$utils/pokemon'
   import { UNOWN, createImgUrl } from '$utils/rewrites'
   import { toDb } from '$utils/link'
   import PokemonCard from '$lib/components/pokemon-card.svelte'
   import { PIcon, Toggle, Tooltip } from '$c/core'
-
-  import { readBox, readTeam, readTeams, read as storeRead, patch } from '$lib/store'
 
   const mpSetGameKey = getContext('mpSetGameKey')
 

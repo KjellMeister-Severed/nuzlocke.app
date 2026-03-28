@@ -53,49 +53,49 @@
 {#if players.length >= 2}
   <div
     class="pvp"
-    class:pvp-done={allComplete}
+    class:pvp--done={allComplete}
     transition:slide={{ duration: 200 }}
   >
-    <div class="pvp-top">
-      <span class="pvp-label">
-        PvP &middot; {bossName}
-      </span>
-      <span class="pvp-progress">
+    <div class="pvp__header">
+      <span class="pvp__title">PvP &middot; {bossName}</span>
+      <span class="pvp__counter">
         {#if allComplete}
-          <span class="done-badge" in:fade>Done</span>
+          <span class="pvp__badge" in:fade>Done</span>
         {:else}
           {completedCount}/{pairings.length}
         {/if}
       </span>
     </div>
 
-    <div class="pvp-list">
+    <div class="pvp__matches">
       {#each pairings as pair}
         {@const battle = findBattle(pair.p1.id, pair.p2.id)}
         {@const winner = getWinnerName(battle)}
-        <div class="match" class:match-done={!!winner}>
+        <div class="pvp__match" class:pvp__match--settled={!!winner}>
           <span
-            class="name"
-            class:winner={battle?.winner_id === pair.p1.id}
+            class="pvp__player"
+            class:pvp__player--winner={battle?.winner_id === pair.p1.id}
           >{pair.p1.name}</span>
-          <span class="vs">vs</span>
+
+          <span class="pvp__vs">vs</span>
+
           <span
-            class="name"
-            class:winner={battle?.winner_id === pair.p2.id}
+            class="pvp__player"
+            class:pvp__player--winner={battle?.winner_id === pair.p2.id}
           >{pair.p2.name}</span>
 
-          <span class="match-result">
+          <span class="pvp__result">
             {#if winner}
-              <span class="text-green-600 dark:text-green-400">{winner}</span>
+              <span class="pvp__winner-name">{winner}</span>
             {:else if isOwner}
-              <button class="report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}>
+              <button class="pvp__report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}>
                 {pair.p1.name}
               </button>
-              <button class="report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}>
+              <button class="pvp__report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}>
                 {pair.p2.name}
               </button>
             {:else}
-              <span class="text-gray-400">&hellip;</span>
+              <span class="pvp__pending">&hellip;</span>
             {/if}
           </span>
         </div>
@@ -106,89 +106,147 @@
 
 <style lang="postcss">
   .pvp {
-    @apply my-3 rounded-lg border p-3;
-    @apply border-gray-200 bg-gray-50;
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(229, 231, 235, 1);
+    background: rgba(249, 250, 251, 1);
   }
 
   :global(.dark) .pvp {
-    @apply border-gray-700 bg-gray-800/50;
+    border-color: rgba(55, 65, 81, 1);
+    background: rgba(31, 41, 55, 0.5);
   }
 
-  .pvp-done {
-    @apply border-green-200 bg-green-50;
+  .pvp--done {
+    border-color: rgba(187, 247, 208, 1);
+    background: rgba(240, 253, 244, 1);
   }
 
-  :global(.dark) .pvp-done {
-    @apply border-green-800 bg-green-900/20;
+  :global(.dark) .pvp--done {
+    border-color: rgba(22, 101, 52, 1);
+    background: rgba(20, 83, 45, 0.2);
   }
 
-  .pvp-top {
-    @apply mb-2 flex items-center justify-between;
+  .pvp__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
   }
 
-  .pvp-label {
-    @apply text-xs font-bold uppercase tracking-wide text-gray-500;
+  .pvp__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(107, 114, 128, 1);
   }
 
-  :global(.dark) .pvp-label {
-    @apply text-gray-400;
+  :global(.dark) .pvp__title {
+    color: rgba(156, 163, 175, 1);
   }
 
-  .pvp-progress {
-    @apply text-xs text-gray-400;
+  .pvp__counter {
+    font-size: 0.75rem;
+    color: rgba(156, 163, 175, 1);
   }
 
-  .done-badge {
-    @apply rounded-full bg-green-500 px-2 py-0.5 text-tiny font-bold text-white;
+  .pvp__badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(34, 197, 94, 1);
   }
 
-  .pvp-list {
-    @apply flex flex-col gap-y-1;
+  .pvp__matches {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 
-  .match {
-    @apply flex items-center gap-x-2 rounded-md px-2 py-1.5 text-xs;
-    @apply bg-white;
+  .pvp__match {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 1);
+    transition: opacity 0.15s;
   }
 
-  :global(.dark) .match {
-    @apply bg-gray-800;
+  :global(.dark) .pvp__match {
+    background: rgba(31, 41, 55, 1);
   }
 
-  .match-done {
-    @apply opacity-60;
+  .pvp__match--settled {
+    opacity: 0.6;
   }
 
-  .name {
-    @apply font-medium;
+  .pvp__player {
+    font-weight: 500;
   }
 
-  .name.winner {
-    @apply font-bold text-green-600;
+  .pvp__player--winner {
+    font-weight: 700;
+    color: rgba(22, 163, 74, 1);
   }
 
-  :global(.dark) .name.winner {
-    @apply text-green-400;
+  :global(.dark) .pvp__player--winner {
+    color: rgba(74, 222, 128, 1);
   }
 
-  .vs {
-    @apply text-gray-300;
+  .pvp__vs {
+    color: rgba(209, 213, 219, 1);
   }
 
-  :global(.dark) .vs {
-    @apply text-gray-600;
+  :global(.dark) .pvp__vs {
+    color: rgba(75, 85, 99, 1);
   }
 
-  .match-result {
-    @apply ml-auto flex items-center gap-x-1 text-tiny;
+  .pvp__result {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.625rem;
   }
 
-  .report-btn {
-    @apply rounded px-2 py-0.5 font-medium transition;
-    @apply bg-gray-100 text-gray-600 hover:bg-gray-200;
+  .pvp__winner-name {
+    color: rgba(22, 163, 74, 1);
   }
 
-  :global(.dark) .report-btn {
-    @apply bg-gray-700 text-gray-300 hover:bg-gray-600;
+  :global(.dark) .pvp__winner-name {
+    color: rgba(74, 222, 128, 1);
+  }
+
+  .pvp__pending {
+    color: rgba(156, 163, 175, 1);
+  }
+
+  .pvp__report-btn {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    transition: background 0.15s;
+    background: rgba(243, 244, 246, 1);
+    color: rgba(75, 85, 99, 1);
+  }
+
+  .pvp__report-btn:hover {
+    background: rgba(229, 231, 235, 1);
+  }
+
+  :global(.dark) .pvp__report-btn {
+    background: rgba(55, 65, 81, 1);
+    color: rgba(209, 213, 219, 1);
+  }
+
+  :global(.dark) .pvp__report-btn:hover {
+    background: rgba(75, 85, 99, 1);
   }
 </style>

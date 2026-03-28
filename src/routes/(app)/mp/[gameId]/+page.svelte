@@ -112,34 +112,32 @@
   <title>Nuzlocke | {$mpGameInfo?.name || 'Lobby'}</title>
 </svelte:head>
 
-<div class="lobby-page">
-  <header class="lobby-header">
-    <a href="/mp" class="back-link">&larr; Back</a>
+<div class="lobby">
+  <header class="lobby__header">
+    <a href="/mp" class="lobby__back">&larr; Back</a>
     <ThemeToggle />
   </header>
 
   {#if loading}
-    <div class="flex flex-1 items-center justify-center">
+    <div class="lobby__center">
       <Loader />
     </div>
   {:else if error}
-    <div class="flex flex-1 flex-col items-center justify-center gap-4">
-      <p class="text-red-500">{error}</p>
-      <a href="/mp" class="text-sm text-blue-500 underline">Back to Multiplayer</a>
+    <div class="lobby__center lobby__center--col">
+      <p class="lobby__err">{error}</p>
+      <a href="/mp" class="lobby__err-link">Back to Multiplayer</a>
     </div>
   {:else}
-    <main>
-      <div class="lobby-title-row">
-        <h1>{$mpGameInfo?.name || 'Game Lobby'}</h1>
+    <main class="lobby__main">
+      <div class="lobby__title-row">
+        <h1 class="lobby__title">{$mpGameInfo?.name || 'Game Lobby'}</h1>
         {#if isMySession}
-          <button class="play-btn" on:click={playAsMe}>
-            Play &rarr;
-          </button>
+          <button class="lobby__play-btn" on:click={playAsMe}>Play &rarr;</button>
         {/if}
       </div>
 
       <!-- Invite -->
-      <div class="invite-row">
+      <div class="lobby__invite">
         <Input
           rounded
           value={browser ? `${window.location.origin}/mp/${gameId}` : ''}
@@ -151,34 +149,37 @@
       </div>
 
       <!-- Players -->
-      <section class="players-section">
-        <h2>Players <span class="player-count">{$mpPlayers.length}</span></h2>
+      <section class="lobby__section">
+        <h2 class="lobby__section-title">
+          Players
+          <span class="lobby__count">{$mpPlayers.length}</span>
+        </h2>
 
         {#if $mpPlayers.length === 0}
-          <p class="empty-text">No players yet. Be the first to join!</p>
+          <p class="lobby__empty">No players yet. Be the first to join!</p>
         {:else}
-          <div class="player-list">
+          <div class="lobby__players">
             {#each $mpPlayers as player}
               {@const team = getPlayerTeam(player)}
               {@const gymCount = getPlayerDefeatedCount(player)}
-              <div class="player-row">
-                <div class="player-main">
+              <div class="lobby__player">
+                <div class="lobby__player-info">
                   {#if Games[player.pokemon_game]?.logo}
                     <Logo
                       logo="{Games[player.pokemon_game].logo}"
                       alt="{player.pokemon_game}"
-                      class="h-5 w-auto"
+                      class="lobby__player-logo"
                       aspect="48xauto"
                     />
                   {/if}
-                  <span class="player-name">{player.name}</span>
+                  <span class="lobby__player-name">{player.name}</span>
                   {#if gymCount > 0}
-                    <span class="gym-badge">{gymCount} gym{gymCount > 1 ? 's' : ''}</span>
+                    <span class="lobby__gym-badge">{gymCount} gym{gymCount > 1 ? 's' : ''}</span>
                   {/if}
                 </div>
 
                 {#if team.length > 0}
-                  <div class="player-team">
+                  <div class="lobby__player-team">
                     {#each team as mon}
                       <PIcon name={mon.name} className="-m-2.5 scale-75" />
                     {/each}
@@ -186,14 +187,14 @@
                 {/if}
 
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div class="player-actions" on:click|stopPropagation>
+                <div class="lobby__player-actions" on:click|stopPropagation>
                   {#if isMySession && session.playerId === player.id}
-                    <button class="action-btn primary" on:click={playAsMe}>Play</button>
+                    <button class="lobby__action lobby__action--primary" on:click={playAsMe}>Play</button>
                   {:else if isMySession}
-                    <button class="action-btn" on:click={() => viewPlayer(player.id)}>View</button>
+                    <button class="lobby__action" on:click={() => viewPlayer(player.id)}>View</button>
                   {:else}
-                    <button class="action-btn" on:click={() => handleEnterPin(player.id)}>Claim</button>
-                    <button class="action-btn" on:click={() => viewPlayer(player.id)}>View</button>
+                    <button class="lobby__action" on:click={() => handleEnterPin(player.id)}>Claim</button>
+                    <button class="lobby__action" on:click={() => viewPlayer(player.id)}>View</button>
                   {/if}
                 </div>
               </div>
@@ -204,14 +205,14 @@
 
       <!-- Join Form -->
       {#if !isMySession}
-        <section class="join-section">
-          <h2>Join this Game</h2>
-          <div class="join-form">
+        <section class="lobby__join">
+          <h2 class="lobby__section-title">Join this Game</h2>
+          <div class="lobby__join-form">
             <Input rounded placeholder="Your name" maxlength={26} bind:value={playerName} />
             <Input rounded placeholder="PIN code (4+ chars)" maxlength={20} bind:value={pincode} />
             <div>
-              <p class="select-label">Pokémon game:</p>
-              <select bind:value={selectedPokemonGame} class="game-select">
+              <p class="lobby__select-label">Pokémon game:</p>
+              <select bind:value={selectedPokemonGame} class="lobby__select">
                 <option value="">Select a game</option>
                 {#each Object.entries(validGames) as [id, game]}
                   <option value={id}>{game.title}</option>
@@ -227,7 +228,7 @@
               {joining ? 'Joining...' : 'Join Game'}
             </Button>
             {#if joinError}
-              <p class="text-sm text-red-500">{joinError}</p>
+              <p class="lobby__join-error">{joinError}</p>
             {/if}
           </div>
         </section>
@@ -237,140 +238,295 @@
 </div>
 
 <style lang="postcss">
-  .lobby-page {
-    @apply flex min-h-screen flex-col;
+  .lobby {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
   }
 
-  .lobby-header {
-    @apply flex items-center justify-between px-6 py-4;
+  .lobby__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
   }
 
-  .back-link {
-    @apply text-sm text-gray-500 transition hover:text-gray-900;
+  .lobby__back {
+    font-size: 0.875rem;
+    color: rgba(107, 114, 128, 1);
+    transition: color 0.15s;
   }
 
-  :global(.dark) .back-link {
-    @apply text-gray-400 hover:text-white;
+  .lobby__back:hover {
+    color: rgba(17, 24, 39, 1);
   }
 
-  main {
-    @apply mx-auto flex w-full max-w-2xl flex-col gap-y-6 px-6 pt-4 pb-16;
+  :global(.dark) .lobby__back {
+    color: rgba(156, 163, 175, 1);
   }
 
-  .lobby-title-row {
-    @apply flex items-center justify-between;
+  :global(.dark) .lobby__back:hover {
+    color: rgba(255, 255, 255, 1);
   }
 
-  h1 {
-    @apply text-2xl font-bold tracking-tight;
+  .lobby__center {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
   }
 
-  .play-btn {
-    @apply rounded-lg px-5 py-2 text-sm font-bold transition;
-    @apply bg-gray-900 text-white hover:bg-gray-700;
+  .lobby__center--col {
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  :global(.dark) .play-btn {
-    @apply bg-white text-gray-900 hover:bg-gray-200;
+  .lobby__err {
+    color: rgba(239, 68, 68, 1);
   }
 
-  .invite-row {
-    @apply flex items-center gap-x-2;
+  .lobby__err-link {
+    font-size: 0.875rem;
+    color: rgba(59, 130, 246, 1);
+    text-decoration: underline;
   }
 
-  .players-section h2,
-  .join-section h2 {
-    @apply mb-3 text-base font-bold;
+  .lobby__main {
+    max-width: 42rem;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem 4rem;
   }
 
-  .player-count {
-    @apply ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-tiny font-bold;
-    @apply bg-gray-200 text-gray-600;
+  .lobby__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  :global(.dark) .player-count {
-    @apply bg-gray-700 text-gray-300;
+  .lobby__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
-  .empty-text {
-    @apply text-sm text-gray-400;
+  .lobby__play-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: background 0.15s;
+    background: rgba(17, 24, 39, 1);
+    color: #fff;
   }
 
-  .player-list {
-    @apply flex flex-col gap-y-2;
+  .lobby__play-btn:hover {
+    background: rgba(55, 65, 81, 1);
   }
 
-  .player-row {
-    @apply flex items-center gap-x-3 rounded-lg border px-4 py-3;
-    @apply border-gray-200 bg-white;
+  :global(.dark) .lobby__play-btn {
+    background: rgba(255, 255, 255, 1);
+    color: rgba(17, 24, 39, 1);
   }
 
-  :global(.dark) .player-row {
-    @apply border-gray-700 bg-gray-800;
+  :global(.dark) .lobby__play-btn:hover {
+    background: rgba(229, 231, 235, 1);
   }
 
-  .player-main {
-    @apply flex flex-1 items-center gap-x-2;
+  .lobby__invite {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .player-name {
-    @apply text-sm font-bold;
+  .lobby__section-title {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
   }
 
-  .gym-badge {
-    @apply rounded-full px-2 py-0.5 text-tiny font-medium;
-    @apply bg-green-100 text-green-700;
+  .lobby__count {
+    margin-left: 0.25rem;
+    display: inline-flex;
+    height: 1.25rem;
+    width: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    background: rgba(229, 231, 235, 1);
+    color: rgba(75, 85, 99, 1);
   }
 
-  :global(.dark) .gym-badge {
-    @apply bg-green-900/30 text-green-400;
+  :global(.dark) .lobby__count {
+    background: rgba(55, 65, 81, 1);
+    color: rgba(209, 213, 219, 1);
   }
 
-  .player-team {
-    @apply hidden items-center sm:flex;
+  .lobby__empty {
+    font-size: 0.875rem;
+    color: rgba(156, 163, 175, 1);
   }
 
-  .player-actions {
-    @apply flex shrink-0 gap-x-1;
+  .lobby__players {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .action-btn {
-    @apply rounded-md px-3 py-1 text-xs font-medium transition;
-    @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+  .lobby__player {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(229, 231, 235, 1);
+    background: rgba(255, 255, 255, 1);
+    transition: box-shadow 0.15s;
   }
 
-  :global(.dark) .action-btn {
-    @apply bg-gray-700 text-gray-300 hover:bg-gray-600;
+  .lobby__player:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
-  .action-btn.primary {
-    @apply bg-gray-900 text-white hover:bg-gray-700;
+  :global(.dark) .lobby__player {
+    border-color: rgba(55, 65, 81, 1);
+    background: rgba(31, 41, 55, 1);
   }
 
-  :global(.dark) .action-btn.primary {
-    @apply bg-white text-gray-900 hover:bg-gray-200;
+  .lobby__player-info {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .join-section {
-    @apply rounded-xl border-2 p-5;
-    @apply border-gray-200;
+  .lobby :global(.lobby__player-logo) {
+    height: 1.25rem;
+    width: auto;
   }
 
-  :global(.dark) .join-section {
-    @apply border-gray-700;
+  .lobby__player-name {
+    font-size: 0.875rem;
+    font-weight: 700;
   }
 
-  .join-form {
-    @apply flex flex-col gap-y-3;
+  .lobby__gym-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 500;
+    background: rgba(220, 252, 231, 1);
+    color: rgba(21, 128, 61, 1);
   }
 
-  .select-label {
-    @apply mb-1 text-xs text-gray-500;
+  :global(.dark) .lobby__gym-badge {
+    background: rgba(20, 83, 45, 0.3);
+    color: rgba(74, 222, 128, 1);
   }
 
-  .game-select {
-    @apply w-full rounded-lg border-2 p-2 text-sm;
-    @apply border-gray-300 bg-white text-gray-900;
-    @apply dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200;
+  .lobby__player-team {
+    display: none;
+    align-items: center;
+  }
+
+  @media (min-width: 640px) {
+    .lobby__player-team {
+      display: flex;
+    }
+  }
+
+  .lobby__player-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.25rem;
+  }
+
+  .lobby__action {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: background 0.15s;
+    background: rgba(243, 244, 246, 1);
+    color: rgba(55, 65, 81, 1);
+  }
+
+  .lobby__action:hover {
+    background: rgba(229, 231, 235, 1);
+  }
+
+  :global(.dark) .lobby__action {
+    background: rgba(55, 65, 81, 1);
+    color: rgba(209, 213, 219, 1);
+  }
+
+  :global(.dark) .lobby__action:hover {
+    background: rgba(75, 85, 99, 1);
+  }
+
+  .lobby__action--primary {
+    background: rgba(17, 24, 39, 1);
+    color: #fff;
+  }
+
+  .lobby__action--primary:hover {
+    background: rgba(55, 65, 81, 1);
+  }
+
+  :global(.dark) .lobby__action--primary {
+    background: rgba(255, 255, 255, 1);
+    color: rgba(17, 24, 39, 1);
+  }
+
+  :global(.dark) .lobby__action--primary:hover {
+    background: rgba(229, 231, 235, 1);
+  }
+
+  .lobby__join {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(229, 231, 235, 1);
+  }
+
+  :global(.dark) .lobby__join {
+    border-color: rgba(55, 65, 81, 1);
+  }
+
+  .lobby__join-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .lobby__select-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    color: rgba(107, 114, 128, 1);
+  }
+
+  .lobby__select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 2px solid rgba(209, 213, 219, 1);
+    font-size: 0.875rem;
+    background: rgba(255, 255, 255, 1);
+    color: rgba(17, 24, 39, 1);
+  }
+
+  :global(.dark) .lobby__select {
+    border-color: rgba(75, 85, 99, 1);
+    background: rgba(17, 24, 39, 1);
+    color: rgba(229, 231, 235, 1);
+  }
+
+  .lobby__join-error {
+    font-size: 0.875rem;
+    color: rgba(239, 68, 68, 1);
   }
 </style>

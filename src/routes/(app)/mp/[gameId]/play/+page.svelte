@@ -238,13 +238,13 @@
 </svelte:head>
 
 {#if loading}
-  <div class="loading-center">
+  <div class="mpplay__loading">
     <Loader />
   </div>
 {:else if error}
-  <div class="error-center">
-    <p class="text-red-600 dark:text-red-400">{error}</p>
-    <a href="/mp/{mpGameId}" class="mt-4 inline-block text-sm text-blue-500 underline">Back to Lobby</a>
+  <div class="mpplay__error">
+    <p class="mpplay__error-msg">{error}</p>
+    <a href="/mp/{mpGameId}" class="mpplay__error-link">Back to Lobby</a>
   </div>
 {:else if gameData && route}
   <MpNav
@@ -259,23 +259,23 @@
 
   <div
     id="mp_game_el"
-    class="game-container"
+    class="mpplay"
     out:fade|local={{ duration: 200 }}
     in:fade|local={{ duration: 200, delay: 250 }}
   >
-    <main id="main" class="game-main">
+    <main id="main" class="mpplay__main">
       {#if !isOwner}
-        <div class="view-only-banner">
+        <div class="mpplay__readonly">
           Viewing {playerInfo?.name}'s game (read-only)
         </div>
       {/if}
 
-      <div class="controls-row">
-        <div class="flex w-full flex-col gap-y-2">
+      <div class="mpplay__toolbar">
+        <div class="mpplay__filters">
           {#if filter === 'nuzlocke'}
             <button
               transition:slide={{ duration: 250 }}
-              class="continue-btn"
+              class="mpplay__continue"
               on:click={routeEl?.setroute(latestnav(route, gameData))}
             >
               Continue at {latestnav(route, gameData).name}
@@ -298,10 +298,7 @@
           {/if}
 
           {#if filter === 'upcoming'}
-            <span
-              transition:slide={{ duration: 250 }}
-              class="hidden-count"
-            >
+            <span transition:slide={{ duration: 250 }} class="mpplay__hidden-count">
               <Icon inline={true} height="1.2em" icon={Hide} class="-mt-1 mr-1 inline-block fill-current" />
               <b>{latestnav(route, gameData).id}</b> items hidden
             </span>
@@ -309,9 +306,9 @@
         </div>
 
         {#if isOwner}
-          <div class="owner-tools">
+          <div class="mpplay__owner-tools">
             <Settings />
-            <div class="search-float">
+            <div class="mpplay__search">
               <Search on:search={onsearch} />
             </div>
           </div>
@@ -339,69 +336,156 @@
 {/if}
 
 <style lang="postcss">
-  .loading-center {
-    @apply flex min-h-screen items-center justify-center;
+  .mpplay__loading {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
   }
 
-  .error-center {
-    @apply flex min-h-screen flex-col items-center justify-center text-center;
+  .mpplay__error {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
-  .game-container {
-    @apply container mx-auto overflow-hidden px-4 pt-24 pb-24;
+  .mpplay__error-msg {
+    color: rgba(220, 38, 38, 1);
   }
 
-  @media (max-width: theme('screens.md')) {
-    .game-container {
+  :global(.dark) .mpplay__error-msg {
+    color: rgba(248, 113, 113, 1);
+  }
+
+  .mpplay__error-link {
+    margin-top: 1rem;
+    display: inline-block;
+    font-size: 0.875rem;
+    color: rgba(59, 130, 246, 1);
+    text-decoration: underline;
+  }
+
+  .mpplay {
+    max-width: 72rem;
+    margin: 0 auto;
+    overflow: hidden;
+    padding: 6rem 1rem 6rem;
+  }
+
+  @media (max-width: 768px) {
+    .mpplay {
       height: 100vh;
       overflow-y: scroll;
-      @apply pt-28;
+      padding-top: 7rem;
     }
 
-    .game-container ~ :global(footer) {
+    .mpplay ~ :global(footer) {
       display: none;
     }
 
-    :global(html, body) {
-      @apply overflow-hidden;
+    :global(html),
+    :global(body) {
+      overflow: hidden;
     }
   }
 
-  .game-main {
-    @apply mx-auto flex max-w-3xl flex-col gap-y-4;
+  .mpplay__main {
+    max-width: 48rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .view-only-banner {
-    @apply rounded-lg border px-3 py-2 text-center text-sm;
-    @apply border-yellow-300 bg-yellow-50 text-yellow-700;
+  .mpplay__readonly {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(253, 224, 71, 1);
+    background: rgba(254, 252, 232, 1);
+    color: rgba(161, 98, 7, 1);
+    text-align: center;
+    font-size: 0.875rem;
   }
 
-  :global(.dark) .view-only-banner {
-    @apply border-yellow-700 bg-yellow-900/20 text-yellow-400;
+  :global(.dark) .mpplay__readonly {
+    border-color: rgba(161, 98, 7, 1);
+    background: rgba(113, 63, 18, 0.2);
+    color: rgba(250, 204, 21, 1);
   }
 
-  .controls-row {
-    @apply flex flex-col items-start justify-between gap-y-4 md:flex-row;
+  .mpplay__toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
-  .continue-btn {
-    @apply inline-flex items-center text-sm text-gray-600 transition hover:text-gray-900;
+  @media (min-width: 768px) {
+    .mpplay__toolbar {
+      flex-direction: row;
+    }
   }
 
-  :global(.dark) .continue-btn {
-    @apply text-gray-400 hover:text-white;
+  .mpplay__filters {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .hidden-count {
-    @apply -mb-4 inline-block text-sm leading-5 tracking-tight;
-    @apply text-gray-500 dark:text-gray-400;
+  .mpplay__continue {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: rgba(75, 85, 99, 1);
+    transition: color 0.15s;
   }
 
-  .owner-tools {
-    @apply inline-flex shrink-0;
+  .mpplay__continue:hover {
+    color: rgba(17, 24, 39, 1);
   }
 
-  .search-float {
-    @apply fixed bottom-6 max-md:z-[8888] md:relative md:bottom-0;
+  :global(.dark) .mpplay__continue {
+    color: rgba(156, 163, 175, 1);
+  }
+
+  :global(.dark) .mpplay__continue:hover {
+    color: rgba(255, 255, 255, 1);
+  }
+
+  .mpplay__hidden-count {
+    display: inline-block;
+    margin-bottom: -1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    letter-spacing: -0.025em;
+    color: rgba(107, 114, 128, 1);
+  }
+
+  :global(.dark) .mpplay__hidden-count {
+    color: rgba(156, 163, 175, 1);
+  }
+
+  .mpplay__owner-tools {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .mpplay__search {
+    position: fixed;
+    bottom: 1.5rem;
+    z-index: 8888;
+  }
+
+  @media (min-width: 768px) {
+    .mpplay__search {
+      position: relative;
+      bottom: 0;
+      z-index: auto;
+    }
   }
 </style>

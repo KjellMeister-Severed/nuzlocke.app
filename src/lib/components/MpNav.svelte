@@ -14,23 +14,23 @@
   import MpPlayerSwitcher from '$lib/components/MpPlayerSwitcher.svelte'
 </script>
 
-<nav>
-  <div class="nav-row">
-    <a href="/mp/{mpGameId}" class="nav-logo" aria-label="Back to lobby">
+<nav class="mpnav">
+  <div class="mpnav__inner">
+    <a href="/mp/{mpGameId}" class="mpnav__back" aria-label="Back to lobby">
       {#if gameKey && Games[gameKey]?.logo}
         <Logo
           logo="{Games[gameKey].logo}"
           pictureClass="game--{gameKey}"
-          class="h-7 w-auto sm:h-8"
+          class="mpnav__logo"
           alt="{gameKey} logo"
           aspect="192x96"
         />
       {:else}
-        <span class="text-sm font-bold">&larr;</span>
+        <span class="mpnav__back-arrow">&larr;</span>
       {/if}
     </a>
 
-    <div class="nav-center">
+    <div class="mpnav__players">
       <MpPlayerSwitcher
         {players}
         {currentPlayerId}
@@ -39,41 +39,72 @@
       />
     </div>
 
-    <div class="nav-right">
+    <div class="mpnav__actions">
       <ThemeToggle />
     </div>
   </div>
 </nav>
 
 <style lang="postcss">
-  nav {
+  .mpnav {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 5000;
-    @apply border-b bg-white;
-    border-color: rgba(0, 0, 0, 0.08);
+    height: 3.25rem;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background: rgba(255, 255, 255, 0.82);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
 
-  :global(.dark) nav {
-    @apply bg-gray-900;
-    border-color: rgba(255, 255, 255, 0.08);
+  :global(.dark) .mpnav {
+    background: rgba(17, 24, 39, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
   }
 
-  .nav-row {
-    @apply mx-auto flex max-w-5xl items-center gap-x-3 px-4 py-2;
+  .mpnav__inner {
+    max-width: 72rem;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
   }
 
-  .nav-logo {
-    @apply flex shrink-0 items-center transition-opacity hover:opacity-70;
+  .mpnav__back {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.15s;
   }
 
-  .nav-center {
-    @apply flex min-w-0 flex-1 justify-center;
+  .mpnav__back:hover {
+    opacity: 0.7;
   }
 
-  .nav-right {
-    @apply flex shrink-0 items-center;
+  .mpnav :global(.mpnav__logo) {
+    height: 1.75rem;
+    width: auto;
+  }
+
+  .mpnav__back-arrow {
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+
+  .mpnav__players {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .mpnav__actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
   }
 </style>

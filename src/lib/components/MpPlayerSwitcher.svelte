@@ -21,20 +21,20 @@
   }
 </script>
 
-<div class="switcher">
+<div class="mpsw">
   {#each players as player}
     {@const team = getTeamSprites(player)}
     {@const isActive = player.id === currentPlayerId}
     {@const isOwn = player.id === ownPlayerId}
     <button
-      class="pill"
-      class:active={isActive}
+      class="mpsw__pill"
+      class:mpsw__pill--active={isActive}
       on:click={() => switchTo(player.id)}
       title="{player.name}{isOwn ? ' (You)' : ''}"
     >
-      <span class="pill-name" class:font-bold={isOwn}>{player.name}</span>
+      <span class="mpsw__name" class:mpsw__name--own={isOwn}>{player.name}</span>
       {#if team.length > 0}
-        <span class="pill-team">
+        <span class="mpsw__team">
           {#each team as mon}
             <PIcon name={mon} className="-m-2.5 scale-[0.55]" />
           {/each}
@@ -45,39 +45,60 @@
 </div>
 
 <style lang="postcss">
-  .switcher {
-    @apply flex gap-1 overflow-x-auto;
+  .mpsw {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
     scrollbar-width: none;
   }
 
-  .switcher::-webkit-scrollbar {
+  .mpsw::-webkit-scrollbar {
     display: none;
   }
 
-  .pill {
-    @apply flex shrink-0 items-center gap-x-0.5 rounded-full px-3 py-1 text-xs font-medium transition;
-    @apply text-gray-500 hover:text-gray-900;
+  .mpsw__pill {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    flex-shrink: 0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--mpsw-text, rgba(107, 114, 128, 1));
+    transition: all 0.15s ease;
   }
 
-  :global(.dark) .pill {
-    @apply text-gray-400 hover:text-white;
+  .mpsw__pill:hover {
+    color: var(--mpsw-text-hover, rgba(17, 24, 39, 1));
   }
 
-  .pill.active {
-    @apply text-gray-900;
-    @apply bg-gray-100;
+  :global(.dark) .mpsw__pill {
+    --mpsw-text: rgba(156, 163, 175, 1);
+    --mpsw-text-hover: rgba(255, 255, 255, 1);
   }
 
-  :global(.dark) .pill.active {
-    @apply text-white;
-    @apply bg-gray-800;
+  .mpsw__pill--active {
+    color: var(--mpsw-active-text, rgba(17, 24, 39, 1));
+    background: var(--mpsw-active-bg, rgba(243, 244, 246, 1));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
 
-  .pill-name {
-    @apply whitespace-nowrap;
+  :global(.dark) .mpsw__pill--active {
+    --mpsw-active-text: rgba(255, 255, 255, 1);
+    --mpsw-active-bg: rgba(55, 65, 81, 1);
   }
 
-  .pill-team {
-    @apply flex items-center;
+  .mpsw__name {
+    white-space: nowrap;
+  }
+
+  .mpsw__name--own {
+    font-weight: 700;
+  }
+
+  .mpsw__team {
+    display: flex;
+    align-items: center;
   }
 </style>

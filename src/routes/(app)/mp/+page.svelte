@@ -56,29 +56,29 @@
   <title>Nuzlocke Tracker | Multiplayer</title>
 </svelte:head>
 
-<div class="mp-page">
-  <header class="mp-header">
-    <a href="/" class="back-link" aria-label="Home">&larr; Home</a>
+<div class="mphome">
+  <header class="mphome__header">
+    <a href="/" class="mphome__back" aria-label="Home">&larr; Home</a>
     <ThemeToggle />
   </header>
 
-  <main>
-    <h1>Multiplayer</h1>
-    <p class="subtitle">Create a new session or join an existing one.</p>
+  <main class="mphome__main">
+    <h1 class="mphome__title">Multiplayer</h1>
+    <p class="mphome__subtitle">Create a new session or join an existing one.</p>
 
     {#if existingSession}
-      <a href="/mp/{existingSession.gameId}" class="session-card">
-        <span class="session-dot"></span>
+      <a href="/mp/{existingSession.gameId}" class="mphome__session">
+        <span class="mphome__session-dot"></span>
         <span>You have an active session</span>
-        <span class="session-arrow">&rarr;</span>
+        <span class="mphome__session-arrow">&rarr;</span>
       </a>
     {/if}
 
-    <div class="cards">
-      <section class="card">
-        <h2>Create</h2>
+    <div class="mphome__cards">
+      <section class="mphome__card">
+        <h2 class="mphome__card-title">Create</h2>
         {#if !createdGame}
-          <div class="card-form">
+          <div class="mphome__card-form">
             <Input
               rounded
               placeholder="Game name"
@@ -91,9 +91,9 @@
             </Button>
           </div>
         {:else}
-          <div class="card-form">
-            <p class="text-sm text-green-600 dark:text-green-400">Game created!</p>
-            <div class="flex items-center gap-x-2">
+          <div class="mphome__card-form">
+            <p class="mphome__created-msg">Game created!</p>
+            <div class="mphome__link-row">
               <Input
                 rounded
                 value={getInviteLink(createdGame.id)}
@@ -109,13 +109,13 @@
           </div>
         {/if}
         {#if error}
-          <p class="mt-2 text-sm text-red-500">{error}</p>
+          <p class="mphome__error">{error}</p>
         {/if}
       </section>
 
-      <section class="card">
-        <h2>Join</h2>
-        <div class="card-form">
+      <section class="mphome__card">
+        <h2 class="mphome__card-title">Join</h2>
+        <div class="mphome__card-form">
           <Input
             rounded
             placeholder="Paste invite link or code"
@@ -133,49 +133,98 @@
 </div>
 
 <style lang="postcss">
-  .mp-page {
-    @apply flex min-h-screen flex-col;
+  .mphome {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
   }
 
-  .mp-header {
-    @apply flex items-center justify-between px-6 py-4;
+  .mphome__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
   }
 
-  .back-link {
-    @apply text-sm text-gray-500 transition hover:text-gray-900;
+  .mphome__back {
+    font-size: 0.875rem;
+    color: rgba(107, 114, 128, 1);
+    transition: color 0.15s;
   }
 
-  :global(.dark) .back-link {
-    @apply text-gray-400 hover:text-white;
+  .mphome__back:hover {
+    color: rgba(17, 24, 39, 1);
   }
 
-  main {
-    @apply mx-auto flex w-full max-w-lg flex-col px-6 pt-8 pb-16;
+  :global(.dark) .mphome__back {
+    color: rgba(156, 163, 175, 1);
   }
 
-  h1 {
-    @apply text-2xl font-bold tracking-tight;
+  :global(.dark) .mphome__back:hover {
+    color: rgba(255, 255, 255, 1);
   }
 
-  .subtitle {
-    @apply mt-1 text-sm text-gray-500;
+  .mphome__main {
+    max-width: 32rem;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem 4rem;
   }
 
-  :global(.dark) .subtitle {
-    @apply text-gray-400;
+  .mphome__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
-  .session-card {
-    @apply mt-6 flex items-center gap-x-3 rounded-lg border-2 px-4 py-3 text-sm font-medium transition;
-    @apply border-green-300 bg-green-50 text-green-800 hover:bg-green-100;
+  .mphome__subtitle {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: rgba(107, 114, 128, 1);
   }
 
-  :global(.dark) .session-card {
-    @apply border-green-700 bg-green-900/20 text-green-400 hover:bg-green-900/30;
+  :global(.dark) .mphome__subtitle {
+    color: rgba(156, 163, 175, 1);
   }
 
-  .session-dot {
-    @apply inline-block h-2 w-2 shrink-0 rounded-full bg-green-500;
+  .mphome__session {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid rgba(134, 239, 172, 1);
+    background: rgba(240, 253, 244, 1);
+    color: rgba(22, 101, 52, 1);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+
+  .mphome__session:hover {
+    background: rgba(220, 252, 231, 1);
+  }
+
+  :global(.dark) .mphome__session {
+    border-color: rgba(21, 128, 61, 1);
+    background: rgba(20, 83, 45, 0.2);
+    color: rgba(74, 222, 128, 1);
+  }
+
+  :global(.dark) .mphome__session:hover {
+    background: rgba(20, 83, 45, 0.3);
+  }
+
+  .mphome__session-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: rgba(34, 197, 94, 1);
     animation: pulse-dot 2s ease-in-out infinite;
   }
 
@@ -184,28 +233,60 @@
     50% { opacity: 0.4; }
   }
 
-  .session-arrow {
-    @apply ml-auto text-green-500;
+  .mphome__session-arrow {
+    margin-left: auto;
+    color: rgba(34, 197, 94, 1);
   }
 
-  .cards {
-    @apply mt-8 flex flex-col gap-y-6;
+  .mphome__cards {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
-  .card {
-    @apply rounded-xl border-2 p-5;
-    @apply border-gray-200 bg-white;
+  .mphome__card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 2px solid rgba(229, 231, 235, 1);
+    background: rgba(255, 255, 255, 1);
   }
 
-  :global(.dark) .card {
-    @apply border-gray-700 bg-gray-800;
+  :global(.dark) .mphome__card {
+    border-color: rgba(55, 65, 81, 1);
+    background: rgba(31, 41, 55, 1);
   }
 
-  .card h2 {
-    @apply mb-4 text-lg font-bold;
+  .mphome__card-title {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    font-weight: 700;
   }
 
-  .card-form {
-    @apply flex flex-col gap-y-3;
+  .mphome__card-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .mphome__created-msg {
+    font-size: 0.875rem;
+    color: rgba(22, 163, 74, 1);
+  }
+
+  :global(.dark) .mphome__created-msg {
+    color: rgba(74, 222, 128, 1);
+  }
+
+  .mphome__link-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mphome__error {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: rgba(239, 68, 68, 1);
   }
 </style>

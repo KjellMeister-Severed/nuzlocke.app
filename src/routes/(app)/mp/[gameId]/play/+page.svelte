@@ -54,6 +54,7 @@
   } from '$lib/mpStore'
 
   import MpNav from '$lib/components/MpNav.svelte'
+  import MpPlayerSwitcher from '$lib/components/MpPlayerSwitcher.svelte'
 
   import { NuzlockeGroups } from '$lib/data/states'
   import { Grave, GraveRow, Fog } from '../../../graveyard'
@@ -332,13 +333,10 @@
   </div>
 {:else if gameData && route}
   <MpNav
-    player={playerInfo}
     {isOwner}
     {gameKey}
     {mpGameId}
-    players={$mpPlayers}
-    currentPlayerId={viewingPlayerId}
-    ownPlayerId={session?.playerId}
+    playerName={playerInfo?.name || ''}
     activeView={mpView}
     on:view={onViewChange}
   />
@@ -350,6 +348,15 @@
     out:fade|local={{ duration: 200 }}
     in:fade|local={{ duration: 200, delay: 250 }}
   >
+    <div class="mpplay__players">
+      <MpPlayerSwitcher
+        players={$mpPlayers}
+        currentPlayerId={viewingPlayerId}
+        {mpGameId}
+        ownPlayerId={session?.playerId}
+      />
+    </div>
+
     {#if mpView === 'game'}
     <main id="main" class="mpplay__main">
       {#if !isOwner}
@@ -589,6 +596,11 @@
     margin: 0 auto;
     overflow: hidden;
     padding: 6rem 1rem 6rem;
+  }
+
+  .mpplay__players {
+    max-width: 48rem;
+    margin: 0 auto 1rem;
   }
 
   @media (max-width: 768px) {

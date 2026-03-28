@@ -43,12 +43,26 @@
     buildBossDefeatedByMap,
     fetchPvpBattles,
     recordPvpBattle,
+    parseGameData,
     mpPlayers,
     mpGameInfo,
     mpPvpBattles
   } from '$lib/mpStore'
 
   import MpNav from '$lib/components/MpNav.svelte'
+
+  import { NuzlockeGroups } from '$lib/data/states'
+  import { Grave, GraveRow, Fog } from '../../../graveyard'
+  import { chunk } from '$utils/arr'
+  import { capitalise } from '$utils/string'
+  import { summarise } from '$utils/badges'
+  import { locid } from '$utils/pokemon'
+  import { UNOWN, createImgUrl } from '$utils/rewrites'
+  import { toDb } from '$utils/link'
+  import PokemonCard from '$lib/components/pokemon-card.svelte'
+  import { PIcon, Toggle, Tooltip } from '$c/core'
+
+  import { readBox, readTeam, readTeams, read as storeRead, patch } from '$lib/store'
 
   const mpSetGameKey = getContext('mpSetGameKey')
 
@@ -70,6 +84,7 @@
   let defeatedByMap = {}
 
   let filter = 'nuzlocke'
+  let mpView = 'game'
   const filters = [
     { label: 'Nuzlocke', val: 'nuzlocke' },
     { label: 'Routes', val: 'route' },
@@ -105,6 +120,53 @@
   afterUpdate(() => {
     if (gameKey) deferStyles(`/assets/items/${gameKey}.css`)
   })
+
+  const onViewChange = (e) => (mpView = e.detail)
+
+  // --- Shared Graveyard ---
+  const { getPkmn, getPkmns } = getContext('game')
+  const chunkSize = 6
+  let allGraveyard = []
+  let graveyardChunked = []
+  let showFog = true
+
+  $: if ($mpPlayers && $mpPlayers.length) {
+    allGraveyard = $mpPlayers.flatMap((player) => {
+      const data = parseGameData(player)
+      return Object.keys(data)
+        .filter((k) => !k.startsWith('__'))
+        .map((k) => ({ ...data[k], _id: `${player.id}_${k}` }))
+        .filter((i) => i.pokemon)
+        .filter((i) => NuzlockeGroups.Dead.includes(i.status))
+        .map((i) => ({ ...i, playerName: player.name }))
+    })
+    graveyardChunked = chunk(allGraveyard, chunkSize)
+  }
+
+  // --- Player Box ---
+  let boxData = []
+  let boxPokemon = {}
+  let boxLoading = true
+  let boxTeamData = []
+  let boxWinData = []
+  let boxMinimal = false
+
+  function updateBoxData() {
+    if (!gameData) return
+    boxData = readBox(gameData)
+    boxTeamData = readTeam(gameData)
+    boxWinData = readTeams(gameData)
+    if (boxData.length) {
+      getPkmns(boxData.map((i) => i.pokemon)).then((data) => {
+        boxPokemon = data
+        boxLoading = false
+      })
+    } else {
+      boxLoading = false
+    }
+  }
+
+  $: if (gameData && mpView === 'box') updateBoxData()
 
   const _onsearch = (e) => (search = e.detail.search)
   const onsearch = debounce(_onsearch, 350)
@@ -276,14 +338,18 @@
     players={$mpPlayers}
     currentPlayerId={viewingPlayerId}
     ownPlayerId={session?.playerId}
+    activeView={mpView}
+    on:view={onViewChange}
   />
 
   <div
     id="mp_game_el"
     class="mpplay"
+    class:mpplay--graveyard={mpView === 'graveyard'}
     out:fade|local={{ duration: 200 }}
     in:fade|local={{ duration: 200, delay: 250 }}
   >
+    {#if mpView === 'game'}
     <main id="main" class="mpplay__main">
       {#if !isOwner}
         <div class="mpplay__readonly">
@@ -369,6 +435,118 @@
         on:report={handlePvpReport}
       />
     </main>
+
+    {:else if mpView === 'box'}
+    <main class="mpplay__main mpplay__box-main">
+      {#if !isOwner}
+        <div class="mpplay__readonly">
+          Viewing {playerInfo?.name}'s box (read-only)
+        </div>
+      {/if}
+
+      {#if boxLoading}
+        <Loader />
+      {:else if boxData.length === 0}
+        <div class="mpplay__empty">No Pokémon in the box yet.</div>
+      {:else}
+        <div class="mpplay__box-toolbar">
+          <Toggle id="mp-minimal" bind:state={boxMinimal}>
+            <small>Hide stats</small>
+          </Toggle>
+        </div>
+        <div class="mpplay__box-grid" class:mpplay__box-grid--minimal={boxMinimal}>
+          {#each boxData as p (locid(p))}
+            {#if boxPokemon[p.pokemon]}
+              <div class="mpplay__box-card" in:fade={{ duration: 200 }}>
+                <PokemonCard
+                  minimal={boxMinimal}
+                  sprite={createImgUrl(boxPokemon[p.pokemon], { shiny: p.status === 6, ext: 'png' })}
+                  fallback={UNOWN}
+                  maxStat={Math.max(150, ...Object.values(boxPokemon[p.pokemon].baseStats))}
+                  moves={[]}
+                  ability={p.nickname ? { name: p.nickname + ' the ' + (p.nature || '').toLowerCase() } : null}
+                  name={boxPokemon[p.pokemon].name}
+                  stats={boxPokemon[p.pokemon].baseStats}
+                  nature={p.nature}
+                  types={(boxPokemon[p.pokemon].types || []).map(t => t.toLowerCase())}
+                >
+                  <span class="mpplay__box-footer" slot="footer">
+                    {#if p.location === 'Starter'}
+                      Met in a fateful encounter
+                    {:else if p.status === 2}
+                      Obtained from {p.location || p.customName}
+                    {:else if p.status === 3}
+                      Received in a trade {(p.customName || p.location).startsWith('Route') ? 'on' : 'in'}
+                      {p.customName || p.location}
+                    {:else if !p.location || (p.customId && !p.customName)}
+                      Met in an unknown place
+                    {:else if p.customName}
+                      Met {p.customName.startsWith('Route') ? 'on' : 'in'}
+                      {p.customName}
+                    {:else}
+                      Met {p.location.startsWith('Route') ? 'on' : 'in'}
+                      {p.location}
+                    {/if}
+
+                    {#if boxTeamData?.includes(locid(p))}
+                      <span class="mpplay__box-team-badge">In Team</span>
+                    {/if}
+                  </span>
+                </PokemonCard>
+              </div>
+            {/if}
+          {/each}
+        </div>
+      {/if}
+    </main>
+
+    {:else if mpView === 'graveyard'}
+    <main class="mpplay__main mpplay__grave-main">
+      <div class="mpplay__grave-content" in:fade={{ duration: 400, delay: 200 }}>
+        {#if !allGraveyard.length}
+          <div class="mpplay__empty">
+            No Pokémon have fallen yet. Congratulations!
+          </div>
+        {:else}
+          <div class="mpplay__grave-controls">
+            <div class="mpplay__grave-toggle">
+              <span class="mpplay__grave-toggle-label">Fog</span>
+              <Toggle id="mp-fog" bind:state={showFog} />
+            </div>
+          </div>
+          {#if showFog}<Fog />{/if}
+        {/if}
+      </div>
+
+      {#if allGraveyard.length}
+        <div class="mpplay__graves">
+          {#each graveyardChunked as row, i}
+            <GraveRow {i} maxRows={graveyardChunked.length}>
+              {#each row as p, j (p._id)}
+                <div
+                  class="mpplay__grave-cell"
+                  class:mpplay__grave-cell--alt={j % 2}
+                  in:fade={{
+                    duration: 600,
+                    delay: Math.min(3000 / allGraveyard.length, 400) * (i * chunkSize + j) + 800
+                  }}
+                >
+                  <Grave
+                    pokemon={p.pokemon}
+                    nickname={p.nickname}
+                    death={p?.death}
+                  />
+                  <p class="mpplay__grave-owner">
+                    {p.playerName}'s
+                  </p>
+                </div>
+              {/each}
+            </GraveRow>
+          {/each}
+        </div>
+      {/if}
+    </main>
+    {/if}
   </div>
 {/if}
 
@@ -524,5 +702,173 @@
       bottom: 0;
       z-index: auto;
     }
+  }
+
+  /* --- Empty state --- */
+  .mpplay__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24rem;
+    font-size: 1.125rem;
+    text-align: center;
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .mpplay__empty {
+    color: theme('colors.gray.600');
+  }
+
+  /* --- Box view --- */
+  .mpplay__box-main {
+    max-width: 80rem;
+  }
+
+  .mpplay__box-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .mpplay__box-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1rem;
+  }
+
+  .mpplay__box-grid--minimal {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  .mpplay__box-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: theme('colors.gray.500');
+  }
+
+  :global(.dark) .mpplay__box-footer {
+    color: theme('colors.gray.400');
+  }
+
+  .mpplay__box-team-badge {
+    display: inline-block;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    background: theme('colors.indigo.100');
+    color: theme('colors.indigo.700');
+  }
+
+  :global(.dark) .mpplay__box-team-badge {
+    background: rgba(99, 102, 241, 0.2);
+    color: theme('colors.indigo.300');
+  }
+
+  /* --- Graveyard view --- */
+  .mpplay--graveyard {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .mpplay__grave-main {
+    max-width: 100%;
+  }
+
+  .mpplay__grave-content {
+    scroll-snap-align: start;
+    scroll-margin-top: 1rem;
+  }
+
+  .mpplay__grave-controls {
+    position: relative;
+    z-index: 999999;
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .mpplay__grave-controls {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 10rem;
+      margin-bottom: 0;
+    }
+  }
+
+  .mpplay__grave-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .mpplay__grave-toggle-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: theme('colors.gray.700');
+  }
+
+  :global(.dark) .mpplay__grave-toggle-label {
+    color: theme('colors.gray.200');
+  }
+
+  .mpplay__graves {
+    margin-top: 2rem;
+    padding-bottom: 12rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .mpplay__graves {
+      padding-bottom: 16rem;
+    }
+  }
+
+  .mpplay__grave-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-snap-align: start;
+    scroll-margin-top: -0.5rem;
+  }
+
+  @media (max-width: theme('screens.sm')) {
+    .mpplay__grave-cell {
+      margin-top: 2.5rem;
+      padding: 0 1.5rem;
+    }
+
+    .mpplay__grave-cell--alt {
+      flex-direction: column-reverse;
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .mpplay__grave-cell {
+      display: inline-flex;
+    }
+  }
+
+  .mpplay__grave-owner {
+    margin-top: -0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: theme('colors.gray.400');
+    text-align: center;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    z-index: 30;
+  }
+
+  :global(.dark) .mpplay__grave-owner {
+    color: theme('colors.gray.500');
   }
 </style>

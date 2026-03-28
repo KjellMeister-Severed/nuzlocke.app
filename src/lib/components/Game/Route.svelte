@@ -280,6 +280,12 @@
   .route-list__item {
     scroll-margin-top: 3.5rem;
     scroll-snap-align: start;
+    position: relative;
+    z-index: 0;
+  }
+
+  .route-list__item:focus-within {
+    z-index: 10;
   }
 
   @media (min-width: theme('screens.md')) {

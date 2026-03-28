@@ -137,87 +137,87 @@
 {:then route}
   <div
     id="game_el"
-    out:fade|local={{ duration: 250 }}
-    in:fade|local={{ duration: 250, delay: 300 }}
-    class="container mx-auto overflow-hidden pb-24"
+    out:fade|local={{ duration: 200 }}
+    in:fade|local={{ duration: 200, delay: 250 }}
+    class="gpage"
   >
-    <div class="flex snap-start flex-row flex-wrap justify-center pb-16">
-      <main
-        id="main"
-        class="p-container relative flex flex-col gap-y-4 md:py-6"
-      >
-        <div
-          class="flex snap-y snap-start snap-always flex-col items-start justify-between gap-y-4 pt-14 md:mb-6 md:flex-row md:pt-14 lg:gap-y-0"
-        >
-          <div class="flex w-full flex-col gap-y-2">
-            {#if filter === 'nuzlocke'}
-              <button
-                transition:slide={{ duration: 250 }}
-                class="inline-flex items-center text-sm"
-                on:click={routeEl.setroute(latestnav(route, gameData))}
-              >
-                Continue at {latestnav(route, gameData).name}
-                <Icon inline={true} class="ml-1 fill-current" icon={Arrow} />
-              </button>
-            {/if}
-
-            <Tabs name="filter" tabs={filters} bind:selected={filter} />
-
-            {#if filter === 'bosses'}
-              <span transition:slide={{ duration: 250 }}>
-                <Tabs
-                  name="bosses"
-                  tabs={bossFilters}
-                  bind:selected={bossFilter}
-                />
-              </span>
-            {/if}
-
-            {#if filter === 'route'}
-              <span transition:slide={{ duration: 250 }}>
-                <Tabs
-                  name="route"
-                  tabs={routeFilters}
-                  bind:selected={routeFilter}
-                />
-              </span>
-            {/if}
-
-            {#if filter === 'upcoming'}
+    <main class="gpage__main">
+      <!-- Toolbar -->
+      <div class="gpage__toolbar">
+        <div class="gpage__toolbar-left">
+          {#if filter === 'nuzlocke'}
+            <button
+              transition:slide={{ duration: 200 }}
+              class="gpage__continue"
+              on:click={routeEl.setroute(latestnav(route, gameData))}
+            >
+              <Icon inline={true} class="gpage__continue-icon" icon={Arrow} />
               <span
-                transition:slide={{ duration: 250 }}
-                class="-mb-4 inline-block text-sm leading-5 tracking-tight dark:text-gray-400"
+                >Continue at <strong>{latestnav(route, gameData).name}</strong
+                ></span
               >
-                <Icon
-                  inline={true}
-                  height="1.2em"
-                  icon={Hide}
-                  class="-mt-1 mr-1 inline-block fill-current"
-                /><b>{latestnav(route, gameData).id}</b> items hidden
-              </span>
-            {/if}
+            </button>
+          {/if}
+
+          <div class="gpage__filters">
+            <Tabs name="filter" tabs={filters} bind:selected={filter} />
           </div>
 
-          <div class="inline-flex">
-            <Settings />
-
-            <div class="fixed bottom-6 max-md:z-[8888] md:relative md:bottom-0">
-              <Search on:search={onsearch} />
+          {#if filter === 'bosses'}
+            <div transition:slide={{ duration: 200 }} class="gpage__subfilters">
+              <Tabs
+                name="bosses"
+                tabs={bossFilters}
+                bind:selected={bossFilter}
+              />
             </div>
-          </div>
+          {/if}
+
+          {#if filter === 'route'}
+            <div transition:slide={{ duration: 200 }} class="gpage__subfilters">
+              <Tabs
+                name="route"
+                tabs={routeFilters}
+                bind:selected={routeFilter}
+              />
+            </div>
+          {/if}
+
+          {#if filter === 'upcoming'}
+            <div
+              transition:slide={{ duration: 200 }}
+              class="gpage__hidden-count"
+            >
+              <Icon
+                inline={true}
+                height="1.1em"
+                icon={Hide}
+                class="fill-current"
+              />
+              <span><b>{latestnav(route, gameData).id}</b> items hidden</span>
+            </div>
+          {/if}
         </div>
 
-        <GameRoute
-          {route}
-          {search}
-          filters={{ main: filter, boss: bossFilter, route: routeFilter }}
-          bind:this={routeEl}
-          className="-mt-8 sm:mt-0"
-          game={{ data: gameData, store: gameStore, key: gameKey }}
-          progress={latestnav(route, gameData).id}
-        />
-      </main>
-    </div>
+        <div class="gpage__toolbar-right">
+          <Settings />
+          <div class="gpage__search-wrap">
+            <Search on:search={onsearch} />
+          </div>
+        </div>
+      </div>
+
+      <!-- Route list -->
+      <GameRoute
+        {route}
+        {search}
+        filters={{ main: filter, boss: bossFilter, route: routeFilter }}
+        bind:this={routeEl}
+        className="gpage__routes"
+        game={{ data: gameData, store: gameStore, key: gameKey }}
+        progress={latestnav(route, gameData).id}
+      />
+    </main>
   </div>
 {/await}
 
@@ -226,19 +226,131 @@
     @apply max-md:overflow-hidden;
   }
 
-  @media (max-width: theme('screens.md')) {
-    .container ~ :global(footer) {
-      display: none;
-    }
+  .gpage {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding-bottom: 6rem;
+    min-height: 100vh;
+  }
 
-    .container {
+  @media (max-width: theme('screens.md')) {
+    .gpage {
       height: 100vh;
-      overflow-y: scroll;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+    }
+    .gpage ~ :global(footer) {
+      display: none;
     }
   }
 
-  .container {
-    min-height: 100%;
-    @apply snap-y snap-always;
+  .gpage__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 3.75rem 1rem 0;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gpage__main {
+      padding: 4.5rem 2rem 0;
+      gap: 1.25rem;
+    }
+  }
+
+  .gpage__toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gpage__toolbar {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+  }
+
+  .gpage__toolbar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gpage__toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .gpage__continue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: theme('colors.gray.500');
+    transition: color 0.15s;
+    padding: 0.125rem 0;
+  }
+
+  .gpage__continue:hover {
+    color: theme('colors.gray.900');
+  }
+
+  :global(.dark) .gpage__continue:hover {
+    color: theme('colors.gray.200');
+  }
+
+  .gpage__continue :global(.gpage__continue-icon) {
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  .gpage__filters,
+  .gpage__subfilters {
+    width: 100%;
+  }
+
+  .gpage__hidden-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: theme('colors.gray.400');
+    padding: 0.125rem 0;
+  }
+
+  :global(.dark) .gpage__hidden-count {
+    color: theme('colors.gray.500');
+  }
+
+  .gpage__search-wrap {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 0;
+    z-index: 8888;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gpage__search-wrap {
+      position: relative;
+      bottom: auto;
+      z-index: auto;
+    }
+  }
+
+  :global(.gpage__routes) {
+    margin-top: -0.5rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    :global(.gpage__routes) {
+      margin-top: 0;
+    }
   }
 </style>

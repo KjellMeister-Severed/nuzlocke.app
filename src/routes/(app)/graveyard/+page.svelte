@@ -26,8 +26,6 @@
     })
   }
 
-  // TODO: Bind all the death data to the fields in the form :vomit:
-
   let box = {},
     bossData = {},
     gameStore
@@ -66,80 +64,65 @@
   const chunkSize = 6
   let graveyard = []
   $: graveyard = Object.keys(box)
-    .map(key => ({...box[key], _id: key}))
+    .map((key) => ({ ...box[key], _id: key }))
     .filter((i) => i.pokemon)
     .filter((i) => NuzlockeGroups.Dead.includes(i.status))
 
   let chunked = []
-  $: chunked = chunk(
-    graveyard,
-    chunkSize // Force 2 rows minimum
-  )
+  $: chunked = chunk(graveyard, chunkSize)
 
   let showFog = true,
-    showAudio = true;
+    showAudio = true
 </script>
 
 <svelte:head>
   <title>Nuzlocke Tracker | Graveyard</title>
 </svelte:head>
 
-<main
-  class="w-screen snap-y snap-always overflow-hidden max-md:h-screen max-md:overflow-y-scroll md:w-auto md:overflow-auto {region}"
->
-  <div
-    class="snap-start scroll-mt-4 px-4 pt-14 sm:px-8 md:pt-14"
-    in:fade={{ duration: 500, delay: 200 }}
-  >
+<main class="gyard {region}">
+  <div class="gyard__content" in:fade={{ duration: 400, delay: 200 }}>
     {#if !graveyard.length}
-      <span
-        class="col-span-4 flex h-96 items-center justify-center text-center text-xl dark:text-gray-600"
-      >
+      <div class="gyard__empty">
         You have no Pokémon in the graveyard.<br />Congratulations!
-      </span>
+      </div>
     {:else}
-      <div
-        class="relative z-[999999] mx-auto mb-6 w-full md:fixed md:bottom-0 md:right-6 md:w-64"
-      >
-        <div class="my-2 mx-auto flex items-center justify-between gap-x-2">
-          <h2 class="text-base font-medium text-gray-900 dark:text-gray-50">
-            Fog animation
-          </h2>
+      <!-- Controls -->
+      <div class="gyard__controls">
+        <div class="gyard__toggle">
+          <span class="gyard__toggle-label">Fog</span>
           <Toggle id="fog" bind:state={showFog} />
         </div>
-
-        <div class="my-2 mx-auto flex items-center justify-between gap-x-2">
-          <h2 class="text-base font-medium text-gray-900 dark:text-gray-50">
-            Audio
-          </h2>
+        <div class="gyard__toggle">
+          <span class="gyard__toggle-label">Audio</span>
           <Toggle id="audio" bind:state={showAudio} />
         </div>
       </div>
 
-      {#if showAudio}<Audio
+      {#if showAudio}
+        <Audio
           class="bottom-8 left-0 z-[999999] lg:fixed"
           src="/audio/lavender.mp3"
-        />{/if}
+        />
+      {/if}
       {#if showFog}<Fog />{/if}
     {/if}
   </div>
 
   {#if graveyard.length}
-    <div class="mt-8 pb-48 sm:pb-64">
+    <div class="gyard__graves">
       {#each chunked as row, i}
         <GraveRow {i} maxRows={chunked.length}>
           {#each row as p, j (p._id)}
             {@const result = summarise(p, bossData)}
 
             <div
-              class="flex {j % 2
-                ? 'flex-row-reverse'
-                : 'flex-row'} snap-start -scroll-mt-2 items-center justify-between max-sm:mt-10 max-sm:px-6 md:inline-block"
+              class="gyard__grave-cell"
+              class:gyard__grave-cell--alt={j % 2}
               in:fade={{
-                duration: 800,
+                duration: 600,
                 delay:
-                  Math.min(3000 / graveyard.length, 500) * (i * chunkSize + j) +
-                  1000
+                  Math.min(3000 / graveyard.length, 400) * (i * chunkSize + j) +
+                  800
               }}
             >
               <Grave
@@ -151,9 +134,7 @@
                 <svelte:fragment slot="badges">
                   {#if result}
                     {@const { icons, summary } = result}
-                    <div
-                      class="-mb-6 -mt-1 flex w-20 scale-75 flex-wrap place-content-center gap-x-1 leading-4 grayscale transition group-hover:grayscale-0"
-                    >
+                    <div class="gyard__badges">
                       <Tooltip>{summary}</Tooltip>
                       {#each icons as icon}
                         <PIcon name={icon} type="b" />
@@ -170,11 +151,143 @@
   {/if}
 </main>
 
-<style>
+<style lang="postcss">
+  .gyard {
+    width: 100vw;
+    overflow: hidden;
+  }
+
   @media (max-width: theme('screens.md')) {
-    main {
-      height: calc(100vh - 38px);
-      overflow-y: scroll;
+    .gyard {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
     }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gyard {
+      width: auto;
+      overflow: auto;
+    }
+  }
+
+  .gyard__content {
+    padding: 3.75rem 1rem 0;
+    scroll-snap-align: start;
+    scroll-margin-top: 1rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .gyard__content {
+      padding: 3.75rem 2rem 0;
+    }
+  }
+
+  .gyard__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24rem;
+    font-size: 1.125rem;
+    text-align: center;
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .gyard__empty {
+    color: theme('colors.gray.600');
+  }
+
+  /* Controls */
+  .gyard__controls {
+    position: relative;
+    z-index: 999999;
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gyard__controls {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 10rem;
+      margin-bottom: 0;
+    }
+  }
+
+  .gyard__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .gyard__toggle-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: theme('colors.gray.700');
+  }
+
+  :global(.dark) .gyard__toggle-label {
+    color: theme('colors.gray.200');
+  }
+
+  /* Graves */
+  .gyard__graves {
+    margin-top: 2rem;
+    padding-bottom: 12rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .gyard__graves {
+      padding-bottom: 16rem;
+    }
+  }
+
+  .gyard__grave-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    scroll-snap-align: start;
+    scroll-margin-top: -0.5rem;
+  }
+
+  @media (max-width: theme('screens.sm')) {
+    .gyard__grave-cell {
+      margin-top: 2.5rem;
+      padding: 0 1.5rem;
+    }
+
+    .gyard__grave-cell--alt {
+      flex-direction: row-reverse;
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .gyard__grave-cell {
+      display: inline-block;
+    }
+  }
+
+  .gyard__badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 5rem;
+    margin: -0.25rem 0 -1.5rem;
+    line-height: 1;
+    transform: scale(0.75);
+    filter: grayscale(1);
+    transition: filter 0.2s;
+    cursor: help;
+  }
+
+  .gyard__grave-cell:hover .gyard__badges {
+    filter: none;
   }
 </style>

@@ -27,7 +27,6 @@
     isGym,
     isStarter,
     isCustom,
-
     showStarterRoute,
     showRoute,
     showGym,
@@ -51,7 +50,6 @@
   const dispatch = createEventDispatcher()
   $: isMpMode = mpPlayers.length >= 2
 
-  // Build set of boss IDs with incomplete PvP phases (gates further routes)
   $: pvpLockedAfterIndex = (() => {
     if (!isMpMode) return -1
     const totalPairings = (mpPlayers.length * (mpPlayers.length - 1)) / 2
@@ -71,7 +69,6 @@
   let starter = data.__starter || 'fire'
   let element
 
-  /** Custom route handlers & Empty routes */
   let custom = [],
     hidden = [],
     bossTeamIds = [],
@@ -104,7 +101,6 @@
     store.update(hidelocation(id))
   }
 
-  /** Event Handlers */
   const setstarter = (e) => {
     starter = e.detail.value
     game.store.update(patch({ __starter: starter }))
@@ -145,14 +141,15 @@
   $: routeList = insertList(route, custom)
 </script>
 
-<ul bind:this={ulRef} class="flex flex-col gap-y-0 lg:gap-y-2 {className}">
+<ul bind:this={ulRef} class="route-list {className}">
   {#each routeList as p, id (locid(p, id))}
     {@const hidden = !filterEntry(filters, search, game.data, progress - 1)(p)}
-    {@const pvpLocked = isMpMode && pvpLockedAfterIndex >= 0 && id > pvpLockedAfterIndex}
+    {@const pvpLocked =
+      isMpMode && pvpLockedAfterIndex >= 0 && id > pvpLockedAfterIndex}
 
-  {#if isStarter(p)}
+    {#if isStarter(p)}
       <li
-        class="flex items-center gap-x-2"
+        class="route-list__item route-list__item--starter"
         id="route-{p.name}"
         in:fade
         out:fade={{ duration: 100 }}
@@ -167,10 +164,7 @@
           locationName="Starter"
           on:new={onnewlocation}
         >
-          <div
-            slot="location"
-            class="-mr-1 flex flex-row-reverse items-center gap-x-2 lg:-ml-6 lg:flex-row"
-          >
+          <div slot="location" class="route-list__starter-loc">
             <StarterType {key} on:select={setstarter} bind:starter />
             <p>
               Starter* <Tooltip
@@ -182,16 +176,16 @@
       </li>
     {:else if isRoute(p)}
       <li
-        class="location"
+        class="route-list__item"
         id="route-{p.name}"
         in:fade
         out:fade={{ duration: 100 }}
         class:hidden={hidden || !showRoute(p, filters, hideRoute)}
-        class:pvp-gated={pvpLocked}
+        class:route-list__item--locked={pvpLocked}
       >
         {#if pvpLocked}
-          <div class="pvp-gate-overlay">
-            <span>🔒 Complete PvP battles to unlock</span>
+          <div class="route-list__gate">
+            <span>Complete PvP battles to unlock</span>
           </div>
         {:else}
           <PokemonSelector
@@ -207,16 +201,16 @@
       </li>
     {:else if isCustom(p)}
       <li
-        class="location flex items-center gap-x-2"
+        class="route-list__item route-list__item--custom"
         id="custom-{p.index}"
         in:fade
         out:fade={{ duration: 100 }}
         class:hidden={hidden || !showCustom(p, filters, hideRoute)}
-        class:pvp-gated={pvpLocked}
+        class:route-list__item--locked={pvpLocked}
       >
         {#if pvpLocked}
-          <div class="pvp-gate-overlay">
-            <span>🔒 Complete PvP battles to unlock</span>
+          <div class="route-list__gate">
+            <span>Complete PvP battles to unlock</span>
           </div>
         {:else}
           <PokemonSelector
@@ -236,7 +230,7 @@
       </li>
     {:else if isGym(p)}
       <li
-        class="boss -mb-4 md:my-2"
+        class="route-list__item route-list__item--boss"
         class:hidden={hidden || !showGym(p, filters)}
         id="boss-{id}"
         in:fade
@@ -271,27 +265,84 @@
 </ul>
 
 <style lang="postcss">
-  li {
-    scroll-margin-top: 28px;
-    @apply snap-start;
+  .route-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
 
-  @media (min-width: theme('screens.md')) {
-    li.location {
-      scroll-margin-top: 32px;
+  @media (min-width: theme('screens.lg')) {
+    .route-list {
+      gap: 0.125rem;
     }
   }
 
-  .pvp-gated {
-    @apply pointer-events-none opacity-30;
+  .route-list__item {
+    scroll-margin-top: 3.5rem;
+    scroll-snap-align: start;
   }
 
-  .pvp-gate-overlay {
-    @apply flex items-center justify-center rounded-lg border border-dashed px-4 py-3 text-xs;
-    @apply border-gray-300 text-gray-400;
+  @media (min-width: theme('screens.md')) {
+    .route-list__item {
+      scroll-margin-top: 4rem;
+    }
   }
 
-  :global(.dark) .pvp-gate-overlay {
-    @apply border-gray-600 text-gray-500;
+  .route-list__item--starter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .route-list__item--custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .route-list__item--boss {
+    margin: 0.5rem 0;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .route-list__item--boss {
+      margin: 0.75rem 0;
+    }
+  }
+
+  .route-list__item--locked {
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  .route-list__gate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    border: 1px dashed theme('colors.gray.300');
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .route-list__gate {
+    border-color: theme('colors.gray.600');
+    color: theme('colors.gray.500');
+  }
+
+  .route-list__starter-loc {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: -0.25rem;
+  }
+
+  @media (min-width: theme('screens.lg')) {
+    .route-list__starter-loc {
+      flex-direction: row;
+      margin-left: -1.5rem;
+    }
   }
 </style>

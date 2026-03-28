@@ -43,7 +43,6 @@
   let selected, nickname, status, nature, hidden, death
   let prevstatus = 'loading'
 
-  // Search text bindings for ACs
   let search, statusSearch, natureSearch
 
   export let encounters = []
@@ -78,7 +77,8 @@
     prevstatus = null
   })
 
-  const { getAllPkmn, getPkmn, getPkmns, getEncounterablePkmn } = getContext('game')
+  const { getAllPkmn, getPkmn, getPkmns, getEncounterablePkmn } =
+    getContext('game')
   const dispatch = createEventDispatcher()
 
   let loading = true
@@ -134,27 +134,26 @@
 
   $: {
     const topatch = nonnull({
-    id,
-    pokemon: selected?.alias,
-    status: status?.id,
-    nature: nature?.id,
-    location: locationName || location,
-    ...(nickname ? { nickname } : {}),
-    ...(hidden ? { hidden: true } : {}),
-    ...(status?.id === 5 && death ? { death } : {})
-  });
+      id,
+      pokemon: selected?.alias,
+      status: status?.id,
+      nature: nature?.id,
+      location: locationName || location,
+      ...(nickname ? { nickname } : {}),
+      ...(hidden ? { hidden: true } : {}),
+      ...(status?.id === 5 && death ? { death } : {})
+    })
 
-  if (selected && !oEqual(topatch, resetd)) {
-    console.log('Patching', location);
-    store.update(patch({ [location]: topatch }));
+    if (selected && !oEqual(topatch, resetd)) {
+      console.log('Patching', location)
+      store.update(patch({ [location]: topatch }))
 
-    // Remove from team if marked as dead
-    if (status?.id === 5 && (team || []).includes(location)) {
-      store.update(patch({ __team: team.filter((loc) => loc !== location) }));
+      if (status?.id === 5 && (team || []).includes(location)) {
+        store.update(patch({ __team: team.filter((loc) => loc !== location) }))
+      }
     }
-  }
 
-  inteam = (team || []).includes(location);
+    inteam = (team || []).includes(location)
   }
 
   const onhide = () => {
@@ -188,7 +187,6 @@
     store.update(patch({ __team: team.slice(0, 6) }))
   }
 
-  /** Team management */
   function handleTeamAdd() {
     setTeam((team || []).filter((i) => i !== location).concat(location))
   }
@@ -273,54 +271,44 @@
 </script>
 
 <SettingsWrapper id="nickname-clause" let:setting={nicknames}>
-  <div
-    class:lg:grid-cols-8={nicknames}
-    class:lg:grid-cols-6={!nicknames}
-    class="relative flex grid w-full grid-cols-2 gap-y-3 gap-x-2 md:grid-cols-4 md:gap-y-2 lg:grid-cols-8 lg:gap-y-0"
-  >
-    <span class="location group relative z-50">
+  <div class="psel" class:psel--gray={gray} class:psel--wide={nicknames}>
+    <!-- Location name -->
+    <div class="psel__loc">
       {#if $$slots.location}
         <slot name="location" />
       {:else}
-        {location}
+        <span class="psel__loc-name">{location}</span>
       {/if}
-    </span>
+    </div>
 
+    <!-- Encounter search / hidden reveal -->
     <SettingsWrapper id="encounter-suggestions" let:setting={suggest}>
       <SettingsWrapper id="dupe-clause" let:setting={dupes}>
         <SettingsWrapper id="missed-dupes" let:setting={missdupes}>
           {#if selected && (selected.hidden || hidden)}
-            <button
-              class="group relative col-span-2 m-0 inline-flex w-11/12 items-center justify-between overflow-hidden rounded-lg border-2 pr-3 transition-colors hover:border-lime-500 dark:border-gray-600 dark:bg-transparent dark:hover:border-lime-400 dark:hover:bg-gray-700/25 sm:w-full sm:text-xs"
-              on:click={handleReveal}
-            >
-              <div
-                class="inline-flex items-center opacity-50 blur grayscale dark:opacity-100"
-              >
+            <button class="psel__hidden-btn" on:click={handleReveal}>
+              <div class="psel__hidden-preview">
                 <PIcon
                   className="-my-2 sm:-my-3 -mx-2"
                   name={selected.sprite}
                 />
                 <span>{selected.name}</span>
               </div>
-              <span
-                class="tracking-wide text-gray-400 group-hover:text-lime-500 dark:text-gray-200 dark:group-hover:text-lime-400"
-                >Reveal</span
-              >
+              <span class="psel__hidden-label">Reveal</span>
               <Icon
                 icon={LongGrass}
                 height="1.4rem"
-                class="absolute left-0.5 -bottom-1.5 text-gray-200 transition-colors group-hover:animate-shake group-hover:text-lime-400 dark:text-gray-700 dark:group-hover:text-lime-500 max-sm:animate-shake max-sm:text-lime-400 dark:max-sm:text-lime-500"
+                class="psel__grass psel__grass--1"
               />
               <Icon
                 icon={LongGrass}
                 height="1.4rem"
-                class="absolute left-7 -bottom-1.5 text-gray-200 transition-colors group-hover:animate-shake group-hover:text-lime-400 dark:text-gray-700 dark:group-hover:text-lime-500 max-sm:animate-shake max-sm:text-lime-400 dark:max-sm:text-lime-500"
+                class="psel__grass psel__grass--2"
               />
               <Icon
                 icon={LongGrass}
                 height="2.5rem"
-                class="absolute left-1.5 -bottom-3 text-gray-300 transition-colors group-hover:animate-shake group-hover:text-lime-500 dark:text-gray-600 dark:group-hover:text-lime-400 max-sm:animate-shake max-sm:text-lime-500 dark:max-sm:text-lime-400"
+                class="psel__grass psel__grass--3"
               />
             </button>
           {:else}
@@ -328,7 +316,8 @@
 
             <AutoCompleteV2
               inset={selected ? true : '2.4em'}
-              itemF={(_) => (fetchSearch ? getEncounterablePkmn() : encounterF())}
+              itemF={(_) =>
+                fetchSearch ? getEncounterablePkmn() : encounterF()}
               max={fetchSearch ? 16 : (encounters || []).length}
               on:change={(_) => (search = null)}
               bind:search
@@ -336,13 +325,13 @@
               id="{location} Encounter"
               name="{location} Encounter"
               placeholder="Find encounter"
-              class="col-span-2 w-11/12 sm:w-full"
+              class="psel__encounter"
             >
               <span
-                class="flex h-8 items-center px-4 py-5 md:py-6"
+                class="psel__option"
                 class:hidden={dupes === 2 &&
                   (missdupes ? misslines : dupelines).has(option?.evoline)}
-                class:dupe={dupes === 1 &&
+                class:psel__option--dupe={dupes === 1 &&
                   (missdupes ? misslines : dupelines).has(option?.evoline)}
                 aria-label={label}
                 slot="option"
@@ -355,14 +344,13 @@
                 />
                 {@html label}
                 {#if dupes === 1 && (missdupes ? misslines : dupelines).has(option?.evoline)}
-                  <span class="dupe__span absolute right-4 text-tiny">dupe</span
-                  >
+                  <span class="psel__dupe-tag">dupe</span>
                 {/if}
               </span>
 
               <svelte:fragment slot="icon" let:iconClass>
                 {#if selected}
-                  <div class="absolute left-4 top-2 z-50">
+                  <div class="psel__particles-anchor">
                     {#if statusComplete}
                       <Particles
                         amount={Math.round(Math.random() * 4) +
@@ -392,28 +380,28 @@
       </SettingsWrapper>
     </SettingsWrapper>
 
+    <!-- Nickname -->
     <SettingsWrapper id="nickname-clause" on="1">
       <Input
         rounded
         bind:value={nickname}
         name="{location} Nickname"
         placeholder="Nickname"
-        className="col-span-2 {!selected || hidden || status?.id === 4
-          ? 'hidden sm:block'
+        className="psel__nickname {!selected || hidden || status?.id === 4
+          ? 'psel__field--secondary'
           : ''}"
       />
     </SettingsWrapper>
 
+    <!-- Status -->
     <SettingsWrapper id="permadeath" on="1" condition={status?.id === 5}>
-      <div
-        class="flex h-10 cursor-not-allowed items-center rounded-lg border-2 text-sm text-gray-800 shadow-sm dark:border-gray-600 dark:text-gray-200"
-      >
+      <div class="psel__dead-badge">
         <Icon
           inline={true}
-          class="mx-2 fill-current"
+          class="fill-current"
           icon={NuzlockeStates[5].icon}
         />
-        Dead
+        <span>Dead</span>
       </div>
 
       <svelte:fragment slot="else">
@@ -426,10 +414,9 @@
           id="{location} Status"
           name="{location} Status"
           placeholder="Status"
-          class="{!selected || hidden ? 'hidden sm:block' : ''} {status?.id ===
-          4
-            ? 'col-span-2 sm:col-span-1'
-            : 'col-span-1'}"
+          class="psel__status {!selected || hidden
+            ? 'psel__field--secondary'
+            : ''} {status?.id === 4 ? 'psel__status--wide' : ''}"
         >
           <svelte:fragment slot="icon" let:iconClass let:selected>
             {#if selected}
@@ -443,22 +430,19 @@
 
           <div
             on:click={handleStatus(option.id)}
-            class="inline-flex items-center py-2 pr-3 pl-1 md:py-3"
+            class="psel__status-option"
             slot="option"
             let:option
             let:label
           >
-            <Icon
-              inline={true}
-              icon={option.icon}
-              class="mr-2 transform fill-current md:scale-125"
-            />
+            <Icon inline={true} icon={option.icon} class="fill-current" />
             {@html label}
           </div>
         </AutoCompleteV2>
       </svelte:fragment>
     </SettingsWrapper>
 
+    <!-- Nature -->
     <AutoCompleteV2
       itemF={(_) => Natures}
       max={Natures.length}
@@ -467,30 +451,19 @@
       id="{location} Nature"
       name="{location} Nature"
       placeholder="Nature"
-      class="col-span-1 {!selected || status?.id === 4 || hidden
-        ? 'hidden sm:block'
+      class="psel__nature {!selected || status?.id === 4 || hidden
+        ? 'psel__field--secondary'
         : ''}"
     >
-      <div
-        class="group -mx-1 flex inline-flex w-full items-center justify-between py-2 px-1 md:py-3"
-        slot="option"
-        let:option
-        let:label
-      >
+      <div class="psel__nature-option" slot="option" let:option let:label>
         <span>{@html label}</span>
         {#if option.value.length}
-          <span
-            class="-my-4 -mr-3 flex items-end gap-x-2 text-tiny text-xs sm:flex-col sm:gap-x-0"
-          >
-            <span
-              class="inline-flex items-center justify-end text-orange-400 dark:group-hover:text-orange-800"
-            >
+          <span class="psel__nature-mods">
+            <span class="psel__nature-up">
               {option.value[0]}
               <Icon inline={true} icon={Chevron} class="fill-current" />
             </span>
-            <span
-              class="inline-flex items-center text-blue-300 dark:group-hover:text-blue-600"
-            >
+            <span class="psel__nature-down">
               {option.value[1]}
               <Icon
                 inline={true}
@@ -503,7 +476,8 @@
       </div>
     </AutoCompleteV2>
 
-    <span class="inline-flex gap-x-2 text-left">
+    <!-- Action buttons -->
+    <div class="psel__actions">
       {#if selected && status && status.id !== 4 && status.id !== 5}
         <IconButton
           rounded
@@ -559,23 +533,15 @@
         </IconButton>
       {/if}
 
-      <Popover
-        title="Open contextual menu"
-        className="absolute top-16 mt-0.5 right-1 sm:top-0 sm:relative "
-      >
+      <!-- Context menu -->
+      <Popover title="Open contextual menu" className="psel__popover-anchor">
         <Icon inline={true} height="1.4em" icon={Dots} class="fill-current" />
 
-        <ul
-          in:fly={{ duration: 250, x: 50 }}
-          class="popover flex w-44 flex-col divide-y rounded-xl bg-white pt-2 shadow-lg dark:divide-gray-600 dark:bg-gray-900"
-          slot="popover"
-        >
-          <strong
-            class="inline-flex w-full items-center justify-between px-4 pb-2"
-          >
-            {locationName || location}
+        <ul in:fly={{ duration: 200, x: 30 }} class="psel__menu" slot="popover">
+          <div class="psel__menu-header">
+            <strong>{locationName || location}</strong>
             <Icon inline={true} icon={Map} class="fill-current" />
-          </strong>
+          </div>
 
           <li>
             <button on:click={onnew}>
@@ -681,44 +647,476 @@
           {/if}
         </ul>
       </Popover>
-    </span>
+    </div>
   </div>
 </SettingsWrapper>
 
 <style lang="postcss">
-  .dupe {
-    @apply mr-2 text-tiny opacity-25 grayscale;
+  /* --- Selector row --- */
+  .psel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.5rem;
+    width: 100%;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: opacity 0.2s;
   }
 
-  .location {
-    @apply col-span-2 mr-4 mt-4 flex h-full items-center text-lg font-medium sm:col-span-1 sm:mt-0 sm:text-sm sm:font-normal md:col-span-4 lg:col-span-1 lg:justify-end lg:text-right;
+  :global(.dark) .psel {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
   }
 
-  ul.popover {
-    @apply text-gray-800;
-  }
-  .popover button,
-  .popover a {
-    @apply w-full cursor-pointer px-4 py-2 text-left text-tiny transition;
-  }
-  .popover li:hover {
-    @apply text-red-400;
-  }
-  .popover li:last-of-type {
-    @apply rounded-b-xl;
-  }
-  .popover li,
-  .popover li :global(*) {
-    @apply inline-flex items-center;
+  .psel:hover {
+    background: rgba(0, 0, 0, 0.01);
+    border-radius: 0.5rem;
   }
 
-  :global(.dark) ul.popover {
-    @apply text-gray-50;
+  :global(.dark) .psel:hover {
+    background: rgba(255, 255, 255, 0.015);
   }
-  :global(.dark) .popover li:hover {
-    @apply bg-orange-500 text-white;
+
+  .psel--gray {
+    opacity: 0.45;
   }
-  :global(.dark) .popover li:hover :global(.group-bg) {
-    @apply bg-orange-500 text-white;
+
+  @media (min-width: theme('screens.md')) {
+    .psel {
+      grid-template-columns: minmax(7rem, 10rem) 2fr 1fr 1fr 1fr auto;
+      gap: 0.5rem;
+      padding: 0.375rem 0.5rem;
+    }
+
+    .psel--wide {
+      grid-template-columns: minmax(7rem, 10rem) 2fr 1fr 1fr 1fr 1fr auto;
+    }
+  }
+
+  @media (min-width: theme('screens.lg')) {
+    .psel {
+      grid-template-columns: minmax(8rem, 12rem) 2fr 1fr 1fr 1fr auto;
+    }
+
+    .psel--wide {
+      grid-template-columns: minmax(8rem, 12rem) 2fr 1fr 1fr 1fr 1fr auto;
+    }
+  }
+
+  /* Location */
+  .psel__loc {
+    grid-column: span 2;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    padding: 0.25rem 0;
+    color: theme('colors.gray.800');
+  }
+
+  :global(.dark) .psel__loc {
+    color: theme('colors.gray.200');
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .psel__loc {
+      grid-column: span 1;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      text-align: right;
+      padding-right: 0.75rem;
+      color: theme('colors.gray.500');
+    }
+
+    :global(.dark) .psel__loc {
+      color: theme('colors.gray.400');
+    }
+  }
+
+  .psel__loc-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Encounter AC */
+  :global(.psel__encounter) {
+    grid-column: span 2;
+    width: 92%;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    :global(.psel__encounter) {
+      width: 100%;
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    :global(.psel__encounter) {
+      grid-column: span 1;
+    }
+  }
+
+  /* Hidden button */
+  .psel__hidden-btn {
+    grid-column: span 2;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 92%;
+    overflow: hidden;
+    padding-right: 0.75rem;
+    border: 2px solid theme('colors.gray.200');
+    border-radius: 0.5rem;
+    transition: border-color 0.15s;
+  }
+
+  :global(.dark) .psel__hidden-btn {
+    border-color: theme('colors.gray.600');
+    background: transparent;
+  }
+
+  .psel__hidden-btn:hover {
+    border-color: theme('colors.lime.500');
+  }
+
+  :global(.dark) .psel__hidden-btn:hover {
+    border-color: theme('colors.lime.400');
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .psel__hidden-btn {
+      width: 100%;
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .psel__hidden-btn {
+      grid-column: span 1;
+    }
+  }
+
+  .psel__hidden-preview {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.5;
+    filter: blur(2px) grayscale(1);
+  }
+
+  :global(.dark) .psel__hidden-preview {
+    opacity: 1;
+  }
+
+  .psel__hidden-label {
+    letter-spacing: 0.04em;
+    font-size: 0.8125rem;
+    color: theme('colors.gray.400');
+    transition: color 0.15s;
+  }
+
+  .psel__hidden-btn:hover .psel__hidden-label {
+    color: theme('colors.lime.500');
+  }
+
+  :global(.dark) .psel__hidden-btn:hover .psel__hidden-label {
+    color: theme('colors.lime.400');
+  }
+
+  :global(.psel__grass) {
+    position: absolute;
+    transition: color 0.15s;
+  }
+
+  :global(.psel__grass--1) {
+    left: 0.125rem;
+    bottom: -0.375rem;
+    color: theme('colors.gray.200');
+  }
+
+  :global(.psel__grass--2) {
+    left: 1.75rem;
+    bottom: -0.375rem;
+    color: theme('colors.gray.200');
+  }
+
+  :global(.psel__grass--3) {
+    left: 0.375rem;
+    bottom: -0.75rem;
+    color: theme('colors.gray.300');
+  }
+
+  :global(.dark .psel__grass--1),
+  :global(.dark .psel__grass--2) {
+    color: theme('colors.gray.700');
+  }
+
+  :global(.dark .psel__grass--3) {
+    color: theme('colors.gray.600');
+  }
+
+  .psel__hidden-btn:hover :global(.psel__grass--1),
+  .psel__hidden-btn:hover :global(.psel__grass--2) {
+    color: theme('colors.lime.400');
+    animation: shake 0.3s ease infinite;
+  }
+
+  .psel__hidden-btn:hover :global(.psel__grass--3) {
+    color: theme('colors.lime.500');
+    animation: shake 0.3s ease infinite;
+  }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(-3deg);
+    }
+    75% {
+      transform: rotate(3deg);
+    }
+  }
+
+  /* Option styling */
+  .psel__option {
+    display: flex;
+    align-items: center;
+    height: 2rem;
+    padding: 0 1rem 0 1.25rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .psel__option {
+      padding: 0.375rem 1rem 0.375rem 1.25rem;
+    }
+  }
+
+  .psel__option--dupe {
+    font-size: 0.6875rem;
+    opacity: 0.25;
+    filter: grayscale(1);
+    margin-right: 0.5rem;
+  }
+
+  .psel__dupe-tag {
+    position: absolute;
+    right: 1rem;
+    font-size: 0.625rem;
+  }
+
+  .psel__particles-anchor {
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    z-index: 50;
+  }
+
+  /* Nickname */
+  :global(.psel__nickname) {
+    grid-column: span 2;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    :global(.psel__nickname) {
+      grid-column: span 1;
+    }
+  }
+
+  /* Dead badge */
+  .psel__dead-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 2px solid theme('colors.gray.200');
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    color: theme('colors.gray.800');
+    cursor: not-allowed;
+  }
+
+  :global(.dark) .psel__dead-badge {
+    border-color: theme('colors.gray.600');
+    color: theme('colors.gray.200');
+  }
+
+  /* Status */
+  :global(.psel__status) {
+    grid-column: span 1;
+  }
+
+  :global(.psel__status--wide) {
+    grid-column: span 2;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    :global(.psel__status--wide) {
+      grid-column: span 1;
+    }
+  }
+
+  .psel__status-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .psel__status-option {
+      padding: 0.625rem 0.75rem;
+    }
+  }
+
+  /* Nature */
+  :global(.psel__nature) {
+    grid-column: span 1;
+  }
+
+  .psel__nature-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem 0.25rem;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .psel__nature-option {
+      padding: 0.625rem 0.25rem;
+    }
+  }
+
+  .psel__nature-mods {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-size: 0.625rem;
+    margin-right: -0.75rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .psel__nature-mods {
+      flex-direction: column;
+    }
+  }
+
+  .psel__nature-up {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: theme('colors.orange.400');
+  }
+
+  .psel__nature-down {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: theme('colors.blue.300');
+  }
+
+  /* Secondary fields (hidden when no pkmn selected on mobile) */
+  :global(.psel__field--secondary) {
+    display: none;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    :global(.psel__field--secondary) {
+      display: block;
+    }
+  }
+
+  /* Actions */
+  .psel__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  :global(.psel__popover-anchor) {
+    position: absolute;
+    top: 0;
+    right: 0.25rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    :global(.psel__popover-anchor) {
+      position: relative;
+      top: auto;
+      right: auto;
+    }
+  }
+
+  /* Context menu */
+  .psel__menu {
+    display: flex;
+    flex-direction: column;
+    width: 12rem;
+    background: white;
+    border-radius: 0.75rem;
+    padding-top: 0;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    color: theme('colors.gray.800');
+  }
+
+  :global(.dark) .psel__menu {
+    background: theme('colors.gray.900');
+    color: theme('colors.gray.50');
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .psel__menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid theme('colors.gray.100');
+  }
+
+  :global(.dark) .psel__menu-header {
+    border-bottom-color: theme('colors.gray.800');
+  }
+
+  .psel__menu li {
+    border-bottom: 1px solid theme('colors.gray.50');
+  }
+
+  :global(.dark) .psel__menu li {
+    border-bottom-color: theme('colors.gray.800');
+  }
+
+  .psel__menu li:last-of-type {
+    border-bottom: none;
+  }
+
+  .psel__menu button,
+  .psel__menu a {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .psel__menu li:hover {
+    background: theme('colors.gray.50');
+    color: theme('colors.red.500');
+  }
+
+  :global(.dark) .psel__menu li:hover {
+    background: theme('colors.orange.500');
+    color: white;
+  }
+
+  :global(.dark) .psel__menu li:hover :global(.group-bg) {
+    background: theme('colors.orange.500');
+    color: white;
   }
 </style>

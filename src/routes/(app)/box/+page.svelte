@@ -60,8 +60,6 @@
     )
 
     setTeam = (data) => gameStore.update(patch({ __team: data.slice(0, 6) }))
-
-    // FIXME: Awkward hack to allow page transition cleanup
     ;['game_el'].forEach((id) => {
       const el = document.getElementById(id)
       if (el) {
@@ -207,7 +205,6 @@
     handleTeamRemove(o)
   }
 
-  /** Team management */
   function handleTeamAdd(p) {
     setTeam((teamData || []).filter((i) => i !== locid(p)).concat(locid(p)))
   }
@@ -229,134 +226,106 @@
   <Loader />
 {:else}
   <div
-    out:fade|local={{ duration: 250 }}
-    in:fade|local={{ duration: 250, delay: 300 }}
-    class="container mx-auto"
+    out:fade|local={{ duration: 200 }}
+    in:fade|local={{ duration: 200, delay: 250 }}
+    class="boxpage"
   >
-    <div class="mx-auto flex flex-col items-center justify-center">
-      <main
-        class="box flex w-full snap-y scroll-pt-14 flex-col gap-y-4 overflow-hidden px-4 pt-14 pb-32 md:px-8 md:pt-20 md:pb-48 xl:w-3/4 {region}"
-      >
-        <div
-          class="relative -my-2 flex snap-start flex-row items-center gap-x-2 md:mt-0"
-        >
+    <main class="boxpage__main {region}">
+      <!-- Toolbar -->
+      <div class="boxpage__toolbar">
+        <div class="boxpage__toolbar-left">
           <AnalysisModal box={Object.values(Pokemon)}>
             <small>Box</small>
           </AnalysisModal>
           <AnalysisModal box={mons.map((p) => Pokemon[p.pokemon])}>
             <small>Team</small>
           </AnalysisModal>
-
-          <Settings class="absolute right-0" />
-
-          <div
-            class="mt-0 mr-8 flex gap-x-2 max-md:flex-grow max-md:justify-end md:flex-row-reverse"
-          >
-            <Toggle id="minimal" bind:state={minimal}>
-              <small>Hide stats</small>
-            </Toggle>
-          </div>
         </div>
 
-        <div
-          class="z-50 mt-2 inline-flex flex-wrap gap-y-2 gap-x-4 sm:flex-row sm:items-start md:flex-nowrap"
-        >
-          <div
-            class="col-span-2 grid w-full grid-cols-5 grid-rows-2 gap-2 sm:w-auto sm:gap-2"
-          >
-            <IconButton
-              rounded
-              title="Clear filters"
-              disabled={!enabled}
-              on:click={clear}
-            >
-              <Icon class="pl-1" height="1.2em" inline icon={X} />
-              <span class="pl-0.5 pr-2 text-sm">Clear</span>
-            </IconButton>
+        <div class="boxpage__toolbar-right">
+          <Toggle id="minimal" bind:state={minimal}>
+            <small>Hide stats</small>
+          </Toggle>
+          <Settings />
+        </div>
+      </div>
 
-            {#each stats as s}
+      <!-- Filters -->
+      <div class="boxpage__filters">
+        <!-- Stat sort pills -->
+        <div class="boxpage__stat-filters">
+          <button
+            class="boxpage__clear-btn"
+            disabled={!enabled}
+            on:click={clear}
+            title="Clear filters"
+          >
+            <Icon class="fill-current" height="0.9em" inline icon={X} />
+            <span>Clear</span>
+          </button>
+
+          {#each stats as s}
+            <label
+              class="boxpage__stat-pill"
+              class:boxpage__stat-pill--active={stat === s}
+            >
+              <input type="radio" bind:group={stat} name="sortable" value={s} />
+              {#if StatLongMap[s]}
+                <Tooltip delay="1000">Sort by highest {StatLongMap[s]}</Tooltip>
+              {:else}
+                <Tooltip delay="1000">Sort by {s}</Tooltip>
+              {/if}
+              {#if StatIconMap[s]}
+                <Icon
+                  inline={true}
+                  class="fill-current {s !== 'spa' ? '' : ''}"
+                  icon={StatIconMap[s]}
+                />
+              {/if}
+              <span>{capitalise(s)}</span>
+            </label>
+          {/each}
+        </div>
+
+        <!-- Type filter -->
+        <div class="boxpage__type-filters">
+          {#each types as t}
+            {#if typeCounts[t] > 0}
               <label
-                class="row-span-1 inline-flex h-7 w-full cursor-pointer items-center justify-center rounded-lg border border-gray-400 px-2 text-center text-xs font-medium text-gray-500 shadow-sm shadow-sm transition dark:text-gray-400"
-                class:border-gray-600={stat === s}
-                class:text-gray-50={stat === s}
-                class:bg-gray-600={stat === s}
-                class:dark:bg-gray-50={stat === s}
-                class:dark:text-gray-900={stat === s}
-                class:dark:border-gray-50={stat === s}
+                class="boxpage__type-pill"
+                class:boxpage__type-pill--dim={(type && !type.endsWith(t)) ||
+                  !typeCounts[t]}
+                class:boxpage__type-pill--active={type && type.endsWith(t)}
               >
                 <input
+                  disabled={!typeCounts[t]}
+                  bind:group={type}
+                  value="type:{t}"
                   type="radio"
-                  bind:group={stat}
-                  name="sortable"
-                  value={s}
+                  name="filter"
                 />
-                {#if StatLongMap[s]}
-                  <Tooltip delay="1000"
-                    >Sort by highest {StatLongMap[s]}</Tooltip
-                  >
-                {:else}
-                  <Tooltip delay="1000">Sort by {s}</Tooltip>
-                {/if}
-                {#if StatIconMap[s]}
-                  <Icon
-                    inline={true}
-                    class="text-tiny  {s !== 'spa'
-                      ? 'fill-current'
-                      : ''} -mt-2.5 mr-2 translate-y-1/2"
-                    icon={StatIconMap[s]}
-                  />
-                {:else}
-                  <span />
-                {/if}
-                {capitalise(s)}
+                <Tooltip delay="1000">Filter to {t} types</Tooltip>
+                <TypeLogo
+                  tooltip={false}
+                  type={t}
+                  className="w-full justify-center"
+                />
               </label>
-            {/each}
-          </div>
+            {/if}
+          {/each}
+        </div>
 
-          <div
-            class="col-span-3 my-1.5 grid grid-cols-6 gap-x-2 gap-y-2 sm:w-auto md:my-0 md:grid-cols-6 xl:grid-cols-9"
-          >
-            {#each types as t}
-              {#if typeCounts[t] > 0}
-                <label
-                  class="h-6 scale-75 cursor-pointer transition max-md:-mx-1"
-                  class:grayscale={(type && !type.endsWith(t)) ||
-                    !typeCounts[t]}
-                  class:opacity-50={(type && !type.endsWith(t)) ||
-                    !typeCounts[t]}
-                  class:grayscale-0={type && type.endsWith(t)}
-                >
-                  <input
-                    disabled={!typeCounts[t]}
-                    bind:group={type}
-                    value="type:{t}"
-                    type="radio"
-                    name="filter"
-                  />
-                  <Tooltip delay="1000">Filter to {t} types</Tooltip>
-                  <TypeLogo
-                    tooltip={false}
-                    type={t}
-                    className="w-full justify-center"
-                  />
-                </label>
-              {/if}
-            {/each}
-          </div>
-
-          {#if true}
-            {@const gymData = winData.filter((d) => d.group === 'gym-leader')}
-            <div
-              class:pl-2={gymData.length}
-              class:border-l={gymData.length}
-              class="col-span-2 my-2 grid origin-left scale-125 grid-cols-4 gap-x-1 border-gray-200 dark:border-gray-500 md:my-0 xl:scale-[1.4] xl:grid-cols-8"
-            >
+        <!-- Badge filter -->
+        {#if true}
+          {@const gymData = winData.filter((d) => d.group === 'gym-leader')}
+          {#if gymData.length}
+            <div class="boxpage__badge-filters">
               {#each gymData as d}
                 <label
-                  class="cursor-pointer self-end px-1 text-center transition max-md:-mx-0.5"
-                  class:grayscale={type && !type.endsWith(d.id)}
-                  class:grayscale-0={type && type.endsWith(d.id)}
-                  class:opacity-50={type && !type.endsWith(d.id)}
+                  class="boxpage__badge-pill"
+                  class:boxpage__badge-pill--dim={type && !type.endsWith(d.id)}
+                  class:boxpage__badge-pill--active={type &&
+                    type.endsWith(d.id)}
                 >
                   <PIcon type="b" name={d.type || d.speciality || d.id} />
                   <Tooltip delay="1000">Filter to team for {d.name}</Tooltip>
@@ -370,255 +339,606 @@
               {/each}
             </div>
           {/if}
-        </div>
+        {/if}
+      </div>
 
-        <div
-          class:grid-cols-1={!minimal}
-          class:grid-cols-2={minimal}
-          class:sm:grid-cols-2={!minimal}
-          class:sm:grid-cols-3={minimal}
-          class:md:grid-cols-4={minimal}
-          class:lg:grid-cols-3={!minimal}
-          class:lg:grid-cols-5={minimal}
-          class:xl:grid-cols-4={!minimal}
-          class:xl:grid-cols-5={minimal}
-          class:gap-y-6={minimal}
-          class:gap-x-3={minimal}
-          class:gap-x-4={!minimal}
-          class:gap-y-8={!minimal}
-          class:xl:grid-cols-3={!minimal &&
-            (stat === 'team' || type.startsWith('badge:'))}
-          class:xl:grid-cols-6={minimal &&
-            (stat === 'team' || type.startsWith('badge:'))}
-          class="mt-6 grid"
-        >
-          {#if box.length === 0}
-            <span
-              class="col-span-4 flex h-96 items-center justify-center text-xl dark:text-gray-600"
-              >You have no Pokémon in your box</span
+      <!-- Card grid -->
+      <div
+        class="boxpage__grid"
+        class:boxpage__grid--minimal={minimal}
+        class:boxpage__grid--team={stat === 'team' || type.startsWith('badge:')}
+      >
+        {#if box.length === 0}
+          <div class="boxpage__empty">You have no Pokémon in your box</div>
+        {/if}
+
+        {#each (stat === 'team' ? mons : box).filter(filter) as p (locid(p))}
+          {@const badgeSummary = summarise(p, winData)}
+
+          <div
+            use:drag={{ data: p, effect: 'add', hideImg: true }}
+            class="boxpage__card-wrap"
+          >
+            <PIcon
+              class="data-drag-img invisible absolute -left-20 -top-20 -z-20"
+              name={p.pokemon}
+            />
+
+            <PokemonCard
+              {minimal}
+              sprite={createImgUrl(Pokemon[p.pokemon], {
+                shiny: p.status === 6,
+                ext: 'png'
+              })}
+              fallback={UNOWN}
+              maxStat={Math.max(
+                150,
+                ...Object.values(Pokemon[p.pokemon].baseStats)
+              )}
+              moves={[]}
+              ability={p.nickname
+                ? {
+                    name: p.nickname + ' the ' + (p.nature || '').toLowerCase()
+                  }
+                : null}
+              name={Pokemon[p.pokemon].name}
+              stats={Pokemon[p.pokemon].baseStats}
+              nature={p.nature}
+              types={(Pokemon[p.pokemon].types || []).map((t) =>
+                t.toLowerCase()
+              )}
             >
-          {/if}
-          {#each (stat === 'team' ? mons : box).filter(filter) as p (locid(p))}
-            {@const badgeSummary = summarise(p, winData)}
+              <svelte:fragment slot="badges">
+                {#if badgeSummary}
+                  {@const { summary, icons } = badgeSummary}
+                  <Tooltip>{summary}</Tooltip>
+                  {#each icons as icon}
+                    <PIcon name={icon} type="b" />
+                  {/each}
+                {/if}
+              </svelte:fragment>
 
-            <span
-              use:drag={{ data: p, effect: 'add', hideImg: true }}
-              class="snap-start"
-            >
-              <PIcon
-                class="data-drag-img invisible absolute -left-20 -top-20 -z-20"
-                name={p.pokemon}
-              />
-
-              <PokemonCard
-                {minimal}
-                sprite={createImgUrl(Pokemon[p.pokemon], {
-                  shiny: p.status === 6,
-                  ext: 'png'
-                })}
-                fallback={UNOWN}
-                maxStat={Math.max(
-                  150,
-                  ...Object.values(Pokemon[p.pokemon].baseStats)
-                )}
-                moves={[]}
-                ability={p.nickname
-                  ? {
-                      name:
-                        p.nickname + ' the ' + (p.nature || '').toLowerCase()
-                    }
-                  : null}
-                name={Pokemon[p.pokemon].name}
-                stats={Pokemon[p.pokemon].baseStats}
-                nature={p.nature}
-                types={(Pokemon[p.pokemon].types || []).map((t) =>
-                  t.toLowerCase()
-                )}
-              >
-                <svelte:fragment slot="badges">
-                  {#if badgeSummary}
-                    {@const { summary, icons } = badgeSummary}
-                    <Tooltip>
-                      {summary}
-                    </Tooltip>
-                    {#each icons as icon}
-                      <PIcon name={icon} type="b" />
-                    {/each}
-                  {/if}
-                </svelte:fragment>
-
-                <span slot="img">
-                  {#if evoComplete === toid(p)}
-                    <span
-                      style="z-index: 999999"
-                      class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    >
-                      <Particles
-                        amount={25}
-                        icons={['ice-stone', 'dawn-stone', 'fire-stone']}
-                        on:end={() => (evoComplete = false)}
-                      />
-                    </span>
-                  {/if}
-                  {#if p.status === 6}
-                    <Icon
-                      inline={true}
-                      icon={Shiny}
-                      height="3.6em"
-                      class="absolute left-1/2 z-50 -translate-y-3/4 -translate-x-full animate-pulse fill-current text-orange-200"
+              <span slot="img">
+                {#if evoComplete === toid(p)}
+                  <span class="boxpage__evo-particles">
+                    <Particles
+                      amount={25}
+                      icons={['ice-stone', 'dawn-stone', 'fire-stone']}
+                      on:end={() => (evoComplete = false)}
                     />
-                    <Icon
-                      inline={true}
-                      icon={Shiny}
-                      height="2.8em"
-                      class="absolute top-0 right-0 z-50 translate-y-1/4 -translate-x-2/3 rotate-180 transform animate-pulse fill-current text-orange-300"
-                    />
-                  {/if}
-                </span>
+                  </span>
+                {/if}
+                {#if p.status === 6}
+                  <Icon
+                    inline={true}
+                    icon={Shiny}
+                    height="3.6em"
+                    class="boxpage__shiny boxpage__shiny--1"
+                  />
+                  <Icon
+                    inline={true}
+                    icon={Shiny}
+                    height="2.8em"
+                    class="boxpage__shiny boxpage__shiny--2"
+                  />
+                {/if}
+              </span>
 
-                <span
-                  class="z-40 p-2 text-center text-xs text-gray-500"
-                  slot="footer"
-                  let:id
-                >
-                  {#if p.location === 'Starter'}
-                    Met in a fateful encounter
-                  {:else if p.status === 2}
-                    Obtained from {p.location || p.customName}
-                  {:else if p.status === 3}
-                    Received in a trade {(
-                      p.customName || p.location
-                    ).startsWith('Route')
-                      ? 'on'
-                      : 'in'}
-                    {p.customName || p.location}
-                  {:else if !p.location || (p.customId && !p.customName)}
-                    Met in an unknown place
-                  {:else if p.customName}
-                    Met {p.customName.startsWith('Route') ? 'on' : 'in'}
-                    {p.customName}
-                  {:else}
-                    Met {p.location.startsWith('Route') ? 'on' : 'in'}
-                    {p.location}
-                  {/if}
+              <span class="boxpage__card-footer" slot="footer" let:id>
+                {#if p.location === 'Starter'}
+                  Met in a fateful encounter
+                {:else if p.status === 2}
+                  Obtained from {p.location || p.customName}
+                {:else if p.status === 3}
+                  Received in a trade {(p.customName || p.location).startsWith(
+                    'Route'
+                  )
+                    ? 'on'
+                    : 'in'}
+                  {p.customName || p.location}
+                {:else if !p.location || (p.customId && !p.customName)}
+                  Met in an unknown place
+                {:else if p.customName}
+                  Met {p.customName.startsWith('Route') ? 'on' : 'in'}
+                  {p.customName}
+                {:else}
+                  Met {p.location.startsWith('Route') ? 'on' : 'in'}
+                  {p.location}
+                {/if}
 
-                  {#if !p.customName}
-                    <span class="mx-1">ǀ</span>
+                {#if !p.customName}
+                  <span class="boxpage__separator">|</span>
 
-                    <a
-                      class="inline border-b border-transparent transition hover:border-black hover:text-black dark:hover:text-gray-50"
-                      href={toDb(id)}
-                      title="Pokémon DB Link for {id}"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      Info
-                      <Icon
-                        inline={true}
-                        icon={External}
-                        class="-mt-0.5 inline fill-current"
-                      />
-                    </a>
-                  {/if}
-
-                  <div
-                    class:hidden={minimal}
-                    class="card-controls absolute -bottom-4 left-1/2 flex -translate-x-1/2 rounded-lg border border-gray-200 bg-red-200 shadow-md"
+                  <a
+                    class="boxpage__info-link"
+                    href={toDb(id)}
+                    title="Pokémon DB Link for {id}"
+                    rel="noreferrer"
+                    target="_blank"
                   >
-                    {#if Pokemon[p.pokemon].evos?.length}
-                      <IconButton
-                        className="translate-y-1 -mb-px transform scale-75"
-                        borderless
-                        name="dawn-stone"
-                        on:click={handleEvo(Pokemon[p.pokemon], p)}
-                      />
-                    {/if}
-                    <IconButton
-                      on:click={handleKill(p)}
-                      className="translate-y-1"
-                      src={Deceased}
-                      borderless
+                    Info
+                    <Icon
+                      inline={true}
+                      icon={External}
+                      class="-mt-0.5 inline fill-current"
                     />
-                    {#if !teamData || teamData?.length < 6 || teamData?.includes(p.location)}
-                      <IconButton
-                        className="translate-y-1 transform scale-125"
-                        borderless
-                        src={Ball}
-                        title="{teamData?.includes(locid(p))
-                          ? `Remove`
-                          : `Add`} {p.pokemon} {teamData?.includes(locid(p))
-                          ? `from`
-                          : `to`} your team"
-                        on:click={(teamData?.includes(locid(p))
-                          ? handleTeamRemove
-                          : handleTeamAdd
-                        ).bind({}, p)}
-                      >
-                        {#if teamData?.includes(locid(p))}
-                          <Icon
-                            class="absolute right-0.5 top-2 scale-75 transform rounded-full bg-white dark:bg-gray-900"
-                            inline
-                            icon={Minus}
-                          />
-                        {:else}
-                          <Icon
-                            class="absolute right-0.5 top-2 scale-75 transform rounded-full bg-white dark:bg-gray-900"
-                            inline
-                            icon={Plus}
-                          />
-                        {/if}
-                      </IconButton>
-                    {/if}
-                  </div>
-                </span>
-              </PokemonCard>
-            </span>
-          {/each}
-        </div>
+                  </a>
+                {/if}
 
-        <Footer class="!relative !mt-6 !-mb-20 md:hidden" />
-      </main>
-    </div>
+                <!-- Card action buttons -->
+                <div class="boxpage__card-actions" class:hidden={minimal}>
+                  {#if Pokemon[p.pokemon].evos?.length}
+                    <IconButton
+                      className="translate-y-1 -mb-px transform scale-75"
+                      borderless
+                      name="dawn-stone"
+                      on:click={handleEvo(Pokemon[p.pokemon], p)}
+                    />
+                  {/if}
+                  <IconButton
+                    on:click={handleKill(p)}
+                    className="translate-y-1"
+                    src={Deceased}
+                    borderless
+                  />
+                  {#if !teamData || teamData?.length < 6 || teamData?.includes(p.location)}
+                    <IconButton
+                      className="translate-y-1 transform scale-125"
+                      borderless
+                      src={Ball}
+                      title="{teamData?.includes(locid(p))
+                        ? `Remove`
+                        : `Add`} {p.pokemon} {teamData?.includes(locid(p))
+                        ? `from`
+                        : `to`} your team"
+                      on:click={(teamData?.includes(locid(p))
+                        ? handleTeamRemove
+                        : handleTeamAdd
+                      ).bind({}, p)}
+                    >
+                      {#if teamData?.includes(locid(p))}
+                        <Icon
+                          class="absolute right-0.5 top-2 scale-75 transform rounded-full bg-white dark:bg-gray-900"
+                          inline
+                          icon={Minus}
+                        />
+                      {:else}
+                        <Icon
+                          class="absolute right-0.5 top-2 scale-75 transform rounded-full bg-white dark:bg-gray-900"
+                          inline
+                          icon={Plus}
+                        />
+                      {/if}
+                    </IconButton>
+                  {/if}
+                </div>
+              </span>
+            </PokemonCard>
+          </div>
+        {/each}
+      </div>
+
+      <Footer class="!relative !mt-6 !-mb-20 md:hidden" />
+    </main>
   </div>
 {/if}
 
 <style lang="postcss">
-  input {
+  input[type='radio'] {
     display: none;
   }
 
-  .card-controls {
-    z-index: -2;
-    background-color: white;
+  .boxpage {
+    max-width: 80rem;
+    margin: 0 auto;
   }
 
-  :global(.dark) .card-controls,
-  :global(.dark) .card-controls:after {
-    background-color: theme('colors.gray.900');
+  .boxpage__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 3.75rem 1rem 8rem;
+    scroll-snap-type: y mandatory;
+    overflow: hidden;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .boxpage__main {
+      padding: 5rem 2rem 12rem;
+    }
+  }
+
+  @media (min-width: theme('screens.xl')) {
+    .boxpage__main {
+      width: 75%;
+      margin: 0 auto;
+    }
+  }
+
+  /* Toolbar */
+  .boxpage__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    scroll-snap-align: start;
+  }
+
+  .boxpage__toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .boxpage__toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Filters */
+  .boxpage__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-start;
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .boxpage__filters {
+      flex-wrap: nowrap;
+    }
+  }
+
+  /* Stat pills */
+  .boxpage__stat-filters {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .boxpage__stat-filters {
+      width: auto;
+    }
+  }
+
+  .boxpage__clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid theme('colors.gray.300');
+    color: theme('colors.gray.500');
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .boxpage__clear-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .boxpage__clear-btn:not(:disabled):hover {
+    border-color: theme('colors.gray.800');
+    color: theme('colors.gray.800');
+  }
+
+  :global(.dark) .boxpage__clear-btn {
+    border-color: theme('colors.gray.600');
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .boxpage__clear-btn:not(:disabled):hover {
+    border-color: theme('colors.gray.300');
+    color: theme('colors.gray.200');
+  }
+
+  .boxpage__stat-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    height: 1.75rem;
+    padding: 0 0.375rem;
+    border-radius: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border: 1px solid theme('colors.gray.300');
+    color: theme('colors.gray.500');
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .boxpage__stat-pill:hover {
+    border-color: theme('colors.gray.500');
+  }
+
+  .boxpage__stat-pill--active {
+    background: theme('colors.gray.800');
+    border-color: theme('colors.gray.800');
+    color: white;
+  }
+
+  :global(.dark) .boxpage__stat-pill {
+    border-color: theme('colors.gray.600');
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .boxpage__stat-pill--active {
+    background: theme('colors.gray.100');
+    border-color: theme('colors.gray.100');
+    color: theme('colors.gray.900');
+  }
+
+  /* Type filters */
+  .boxpage__type-filters {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .boxpage__type-filters {
+      width: auto;
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .boxpage__type-filters {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  @media (min-width: theme('screens.xl')) {
+    .boxpage__type-filters {
+      grid-template-columns: repeat(9, 1fr);
+    }
+  }
+
+  .boxpage__type-pill {
+    height: 1.625rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .boxpage__type-pill--dim {
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  .boxpage__type-pill--active {
+    filter: none;
+    opacity: 1;
+  }
+
+  /* Badge filters */
+  .boxpage__badge-filters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid theme('colors.gray.200');
+    transform: scale(1.15);
+    transform-origin: left;
+  }
+
+  :global(.dark) .boxpage__badge-filters {
+    border-left-color: theme('colors.gray.600');
+  }
+
+  @media (min-width: theme('screens.xl')) {
+    .boxpage__badge-filters {
+      grid-template-columns: repeat(8, 1fr);
+      transform: scale(1.3);
+    }
+  }
+
+  .boxpage__badge-pill {
+    cursor: pointer;
+    text-align: center;
+    padding: 0.125rem 0.25rem;
+    transition: all 0.15s;
+  }
+
+  .boxpage__badge-pill--dim {
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  .boxpage__badge-pill--active {
+    filter: none;
+    opacity: 1;
+  }
+
+  /* Card grid */
+  .boxpage__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem 1rem;
+    margin-top: 1rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .boxpage__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: theme('screens.lg')) {
+    .boxpage__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: theme('screens.xl')) {
+    .boxpage__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .boxpage__grid--minimal {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 0.75rem;
+  }
+
+  @media (min-width: theme('screens.sm')) {
+    .boxpage__grid--minimal {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: theme('screens.md')) {
+    .boxpage__grid--minimal {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: theme('screens.lg')) {
+    .boxpage__grid--minimal {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  .boxpage__grid--team {
+    /* Wider cards for team/badge view */
+  }
+
+  @media (min-width: theme('screens.xl')) {
+    .boxpage__grid--team:not(.boxpage__grid--minimal) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .boxpage__grid--team.boxpage__grid--minimal {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  .boxpage__card-wrap {
+    scroll-snap-align: start;
+    position: relative;
+  }
+
+  .boxpage__empty {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24rem;
+    font-size: 1.125rem;
+    color: theme('colors.gray.400');
+  }
+
+  :global(.dark) .boxpage__empty {
+    color: theme('colors.gray.600');
+  }
+
+  /* Card footer */
+  .boxpage__card-footer {
+    z-index: 40;
+    display: block;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: theme('colors.gray.500');
+    position: relative;
+  }
+
+  .boxpage__separator {
+    margin: 0 0.25rem;
+    opacity: 0.4;
+  }
+
+  .boxpage__info-link {
+    display: inline;
+    border-bottom: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .boxpage__info-link:hover {
+    border-bottom-color: currentColor;
+    color: theme('colors.gray.900');
+  }
+
+  :global(.dark) .boxpage__info-link:hover {
+    color: theme('colors.gray.100');
+  }
+
+  /* Card actions */
+  .boxpage__card-actions {
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    border-radius: 0.5rem;
+    border: 1px solid theme('colors.gray.200');
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: -2;
+    overflow: hidden;
+  }
+
+  :global(.dark) .boxpage__card-actions {
+    background: theme('colors.gray.900');
     border-color: transparent;
   }
-  .card-controls:after {
+
+  .boxpage__card-actions::after {
     content: '';
     position: absolute;
-    background-color: white;
+    background: inherit;
     width: calc(100% + 12px);
     left: -6px;
-    bottom: calc(50% + 1px);
+    bottom: 50%;
     z-index: -10;
     height: calc(50% + 1px);
   }
 
-  @media (max-width: theme('screens.md')) {
-    .container + :global(footer) {
-      @apply hidden;
-    }
+  /* Evo particles */
+  .boxpage__evo-particles {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999999;
+  }
 
-    :global(body) {
-      overflow: hidden;
+  /* Shiny sparkles */
+  :global(.boxpage__shiny) {
+    position: absolute;
+    z-index: 50;
+    fill: currentColor;
+    color: theme('colors.orange.200');
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  :global(.boxpage__shiny--1) {
+    left: 50%;
+    transform: translateY(-75%) translateX(-100%);
+  }
+
+  :global(.boxpage__shiny--2) {
+    top: 0;
+    right: 0;
+    transform: translateY(25%) translateX(-67%) rotate(180deg);
+    color: theme('colors.orange.300');
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
     }
-    main {
-      height: calc(100vh - 38px);
-      overflow-y: scroll;
+    50% {
+      opacity: 0.5;
     }
   }
 </style>

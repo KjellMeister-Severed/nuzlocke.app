@@ -1,10 +1,9 @@
 <script>
   import { onMount } from 'svelte'
   import { browser } from '$app/environment'
-  import { ScreenContainer } from '$lib/components/containers'
   import { Button, Input } from '$lib/components/core'
   import { createMpGame, loadMpSession } from '$lib/mpStore'
-  import { Game } from '$icons'
+  import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
   let gameName = ''
   let joinCode = ''
@@ -57,104 +56,156 @@
   <title>Nuzlocke Tracker | Multiplayer</title>
 </svelte:head>
 
-<ScreenContainer title="Multiplayer" icon={Game} className="mb-20">
-  <div class="mx-auto flex max-w-lg flex-col gap-y-6">
+<div class="mp-page">
+  <header class="mp-header">
+    <a href="/" class="back-link" aria-label="Home">&larr; Home</a>
+    <ThemeToggle />
+  </header>
+
+  <main>
+    <h1>Multiplayer</h1>
+    <p class="subtitle">Create a new session or join an existing one.</p>
 
     {#if existingSession}
-      <div class="session-banner">
-        <p class="mb-1 text-sm font-bold">Active Session</p>
-        <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">You have an active multiplayer session.</p>
-        <a href="/mp/{existingSession.gameId}">
-          <Button rounded className="text-sm">Return to Lobby</Button>
-        </a>
-      </div>
+      <a href="/mp/{existingSession.gameId}" class="session-card">
+        <span class="session-dot"></span>
+        <span>You have an active session</span>
+        <span class="session-arrow">&rarr;</span>
+      </a>
     {/if}
 
-    <section>
-      <h2 class="section-title blue">Create a Game</h2>
-      <p class="section-desc">Start a new multiplayer nuzlocke session and invite your friends.</p>
-
-      {#if !createdGame}
-        <div class="flex flex-col gap-y-3">
-          <Input
-            rounded
-            placeholder="Game name"
-            maxlength={40}
-            bind:value={gameName}
-            on:keydown={(e) => e.key === 'Enter' && handleCreate()}
-          />
-          <Button rounded on:click={handleCreate} className="w-full" disabled={creating || !gameName.trim()}>
-            {creating ? 'Creating...' : 'Create Game'}
-          </Button>
-        </div>
-      {:else}
-        <div class="flex flex-col gap-y-3">
-          <p class="text-sm text-green-600 dark:text-green-400">Game created! Share this link:</p>
-          <div class="flex items-center gap-x-2">
+    <div class="cards">
+      <section class="card">
+        <h2>Create</h2>
+        {#if !createdGame}
+          <div class="card-form">
             <Input
               rounded
-              placeholder="Invite link"
-              value={getInviteLink(createdGame.id)}
-              className="flex-1 text-xs"
+              placeholder="Game name"
+              maxlength={40}
+              bind:value={gameName}
+              on:keydown={(e) => e.key === 'Enter' && handleCreate()}
             />
-            <Button rounded on:click={copyLink} className="whitespace-nowrap text-sm">
-              {copied ? 'Copied!' : 'Copy'}
+            <Button rounded on:click={handleCreate} className="w-full" disabled={creating || !gameName.trim()}>
+              {creating ? 'Creating...' : 'Create Game'}
             </Button>
           </div>
-          <a href="/mp/{createdGame.id}">
-            <Button rounded className="w-full text-sm">Go to Lobby</Button>
-          </a>
+        {:else}
+          <div class="card-form">
+            <p class="text-sm text-green-600 dark:text-green-400">Game created!</p>
+            <div class="flex items-center gap-x-2">
+              <Input
+                rounded
+                value={getInviteLink(createdGame.id)}
+                className="flex-1 text-xs"
+              />
+              <Button rounded on:click={copyLink} className="shrink-0 text-xs">
+                {copied ? 'Copied!' : 'Copy'}
+              </Button>
+            </div>
+            <a href="/mp/{createdGame.id}">
+              <Button rounded className="w-full">Go to Lobby</Button>
+            </a>
+          </div>
+        {/if}
+        {#if error}
+          <p class="mt-2 text-sm text-red-500">{error}</p>
+        {/if}
+      </section>
+
+      <section class="card">
+        <h2>Join</h2>
+        <div class="card-form">
+          <Input
+            rounded
+            placeholder="Paste invite link or code"
+            maxlength={200}
+            bind:value={joinCode}
+            on:keydown={(e) => e.key === 'Enter' && handleJoin()}
+          />
+          <Button rounded on:click={handleJoin} className="w-full" disabled={!joinCode.trim()}>
+            Join Game
+          </Button>
         </div>
-      {/if}
-
-      {#if error}
-        <p class="mt-2 text-sm text-red-500">{error}</p>
-      {/if}
-    </section>
-
-    <section>
-      <h2 class="section-title pink">Join a Game</h2>
-      <p class="section-desc">Paste an invite link or game code from your friend.</p>
-
-      <div class="flex flex-col gap-y-3">
-        <Input
-          rounded
-          placeholder="Invite link or game code"
-          maxlength={200}
-          bind:value={joinCode}
-          on:keydown={(e) => e.key === 'Enter' && handleJoin()}
-        />
-        <Button rounded on:click={handleJoin} className="w-full" disabled={!joinCode.trim()}>
-          Join Game
-        </Button>
-      </div>
-    </section>
-  </div>
-</ScreenContainer>
+      </section>
+    </div>
+  </main>
+</div>
 
 <style lang="postcss">
-  section {
+  .mp-page {
+    @apply flex min-h-screen flex-col;
+  }
+
+  .mp-header {
+    @apply flex items-center justify-between px-6 py-4;
+  }
+
+  .back-link {
+    @apply text-sm text-gray-500 transition hover:text-gray-900;
+  }
+
+  :global(.dark) .back-link {
+    @apply text-gray-400 hover:text-white;
+  }
+
+  main {
+    @apply mx-auto flex w-full max-w-lg flex-col px-6 pt-8 pb-16;
+  }
+
+  h1 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  .subtitle {
+    @apply mt-1 text-sm text-gray-500;
+  }
+
+  :global(.dark) .subtitle {
+    @apply text-gray-400;
+  }
+
+  .session-card {
+    @apply mt-6 flex items-center gap-x-3 rounded-lg border-2 px-4 py-3 text-sm font-medium transition;
+    @apply border-green-300 bg-green-50 text-green-800 hover:bg-green-100;
+  }
+
+  :global(.dark) .session-card {
+    @apply border-green-700 bg-green-900/20 text-green-400 hover:bg-green-900/30;
+  }
+
+  .session-dot {
+    @apply inline-block h-2 w-2 shrink-0 rounded-full bg-green-500;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .session-arrow {
+    @apply ml-auto text-green-500;
+  }
+
+  .cards {
+    @apply mt-8 flex flex-col gap-y-6;
+  }
+
+  .card {
+    @apply rounded-xl border-2 p-5;
+    @apply border-gray-200 bg-white;
+  }
+
+  :global(.dark) .card {
+    @apply border-gray-700 bg-gray-800;
+  }
+
+  .card h2 {
+    @apply mb-4 text-lg font-bold;
+  }
+
+  .card-form {
     @apply flex flex-col gap-y-3;
-  }
-
-  .section-title {
-    @apply text-lg font-bold;
-  }
-
-  .section-title.blue {
-    @apply text-blue-600 dark:text-blue-400;
-  }
-
-  .section-title.pink {
-    @apply text-pink-600 dark:text-pink-400;
-  }
-
-  .section-desc {
-    @apply text-sm text-gray-500 dark:text-gray-400;
-  }
-
-  .session-banner {
-    @apply rounded-lg border-2 border-yellow-400 p-4;
-    @apply bg-yellow-50 dark:bg-yellow-500/10;
   }
 </style>

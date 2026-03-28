@@ -283,15 +283,15 @@
   }
 
   .pvp-gated {
-    @apply pointer-events-none opacity-40;
+    @apply pointer-events-none opacity-30;
   }
 
   .pvp-gate-overlay {
-    @apply flex items-center justify-center rounded-lg border border-dashed px-4 py-3;
-    @apply border-amber-400/50 bg-amber-50/30 text-sm text-amber-700;
+    @apply flex items-center justify-center rounded-lg border border-dashed px-4 py-3 text-xs;
+    @apply border-gray-300 text-gray-400;
   }
 
   :global(.dark) .pvp-gate-overlay {
-    @apply border-amber-600/30 bg-amber-900/10 text-amber-400;
+    @apply border-gray-600 text-gray-500;
   }
 </style>

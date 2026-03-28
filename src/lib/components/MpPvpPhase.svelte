@@ -1,9 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte'
   import { fade, slide } from 'svelte/transition'
-  import { PIcon, Button } from '$lib/components/core'
-  import Icon from '@iconify/svelte/dist/OfflineIcon.svelte'
-  import { Ball } from '$icons'
 
   export let bossId = ''
   export let bossName = ''
@@ -15,7 +12,6 @@
 
   const dispatch = createEventDispatcher()
 
-  // Generate all unique pairings
   $: pairings = (() => {
     const pairs = []
     for (let i = 0; i < players.length; i++) {
@@ -26,7 +22,6 @@
     return pairs
   })()
 
-  // Map battles for this boss
   $: bossBattles = battles.filter((b) => b.boss_id === bossId)
 
   function findBattle(p1Id, p2Id) {
@@ -57,77 +52,52 @@
 
 {#if players.length >= 2}
   <div
-    class="pvp-phase"
-    class:pvp-complete={allComplete}
-    transition:slide={{ duration: 250 }}
+    class="pvp"
+    class:pvp-done={allComplete}
+    transition:slide={{ duration: 200 }}
   >
-    <div class="pvp-header">
-      <span class="pvp-icon">⚔️</span>
-      <div>
-        <h4 class="text-sm font-bold">
-          PvP Phase — {bossName}
-        </h4>
-        <p class="text-tiny text-gray-500 dark:text-gray-400">
-          {completedCount}/{pairings.length} battles completed
-        </p>
-      </div>
-      {#if allComplete}
-        <span class="ml-auto rounded-full bg-green-500 px-2 py-0.5 text-tiny font-bold text-white" in:fade>
-          Complete
-        </span>
-      {/if}
+    <div class="pvp-top">
+      <span class="pvp-label">
+        PvP &middot; {bossName}
+      </span>
+      <span class="pvp-progress">
+        {#if allComplete}
+          <span class="done-badge" in:fade>Done</span>
+        {:else}
+          {completedCount}/{pairings.length}
+        {/if}
+      </span>
     </div>
 
-    <div class="pvp-battles">
+    <div class="pvp-list">
       {#each pairings as pair}
         {@const battle = findBattle(pair.p1.id, pair.p2.id)}
         {@const winner = getWinnerName(battle)}
-        <div
-          class="pvp-battle"
-          class:pvp-decided={!!winner}
-        >
-          <div class="flex flex-1 items-center gap-x-2">
-            <span
-              class="text-xs font-bold"
-              class:text-green-600={battle?.winner_id === pair.p1.id}
-              class:dark:text-green-400={battle?.winner_id === pair.p1.id}
-            >
-              {pair.p1.name}
-            </span>
-            <span class="text-tiny text-gray-400">vs</span>
-            <span
-              class="text-xs font-bold"
-              class:text-green-600={battle?.winner_id === pair.p2.id}
-              class:dark:text-green-400={battle?.winner_id === pair.p2.id}
-            >
-              {pair.p2.name}
-            </span>
-          </div>
+        <div class="match" class:match-done={!!winner}>
+          <span
+            class="name"
+            class:winner={battle?.winner_id === pair.p1.id}
+          >{pair.p1.name}</span>
+          <span class="vs">vs</span>
+          <span
+            class="name"
+            class:winner={battle?.winner_id === pair.p2.id}
+          >{pair.p2.name}</span>
 
-          {#if winner}
-            <span class="text-tiny text-green-600 dark:text-green-400">
-              🏆 {winner}
-            </span>
-          {:else if isOwner}
-            <div class="flex gap-x-1">
-              <button
-                class="pvp-btn"
-                on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}
-                title="{pair.p1.name} wins"
-              >
-                {pair.p1.name} won
+          <span class="match-result">
+            {#if winner}
+              <span class="text-green-600 dark:text-green-400">{winner}</span>
+            {:else if isOwner}
+              <button class="report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p1.id)}>
+                {pair.p1.name}
               </button>
-              <button
-                class="pvp-btn"
-                on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}
-                title="{pair.p2.name} wins"
-              >
-                {pair.p2.name} won
+              <button class="report-btn" on:click={() => handleReport(pair.p1.id, pair.p2.id, pair.p2.id)}>
+                {pair.p2.name}
               </button>
-            </div>
-          {:else}
-            <span class="text-tiny text-gray-400">Awaiting result</span>
-          {/if}
+            {:else}
+              <span class="text-gray-400">&hellip;</span>
+            {/if}
+          </span>
         </div>
       {/each}
     </div>
@@ -135,40 +105,90 @@
 {/if}
 
 <style lang="postcss">
-  .pvp-phase {
-    @apply my-2 rounded-lg border-2 border-amber-300/50 bg-amber-50/50 p-3;
-    @apply dark:border-amber-600/30 dark:bg-amber-900/10;
+  .pvp {
+    @apply my-3 rounded-lg border p-3;
+    @apply border-gray-200 bg-gray-50;
   }
 
-  .pvp-complete {
-    @apply border-green-300/50 bg-green-50/50;
-    @apply dark:border-green-600/30 dark:bg-green-900/10;
+  :global(.dark) .pvp {
+    @apply border-gray-700 bg-gray-800/50;
   }
 
-  .pvp-header {
-    @apply mb-2 flex items-center gap-x-2;
+  .pvp-done {
+    @apply border-green-200 bg-green-50;
   }
 
-  .pvp-icon {
-    @apply text-xl;
+  :global(.dark) .pvp-done {
+    @apply border-green-800 bg-green-900/20;
   }
 
-  .pvp-battles {
+  .pvp-top {
+    @apply mb-2 flex items-center justify-between;
+  }
+
+  .pvp-label {
+    @apply text-xs font-bold uppercase tracking-wide text-gray-500;
+  }
+
+  :global(.dark) .pvp-label {
+    @apply text-gray-400;
+  }
+
+  .pvp-progress {
+    @apply text-xs text-gray-400;
+  }
+
+  .done-badge {
+    @apply rounded-full bg-green-500 px-2 py-0.5 text-tiny font-bold text-white;
+  }
+
+  .pvp-list {
     @apply flex flex-col gap-y-1;
   }
 
-  .pvp-battle {
-    @apply flex items-center justify-between rounded-md px-2 py-1.5;
-    @apply bg-white/60 dark:bg-gray-800/40;
+  .match {
+    @apply flex items-center gap-x-2 rounded-md px-2 py-1.5 text-xs;
+    @apply bg-white;
   }
 
-  .pvp-decided {
-    @apply opacity-70;
+  :global(.dark) .match {
+    @apply bg-gray-800;
   }
 
-  .pvp-btn {
-    @apply rounded-md px-2 py-0.5 text-tiny font-medium transition;
-    @apply bg-amber-100 text-amber-800 hover:bg-amber-200;
-    @apply dark:bg-amber-800/30 dark:text-amber-300 dark:hover:bg-amber-800/50;
+  .match-done {
+    @apply opacity-60;
+  }
+
+  .name {
+    @apply font-medium;
+  }
+
+  .name.winner {
+    @apply font-bold text-green-600;
+  }
+
+  :global(.dark) .name.winner {
+    @apply text-green-400;
+  }
+
+  .vs {
+    @apply text-gray-300;
+  }
+
+  :global(.dark) .vs {
+    @apply text-gray-600;
+  }
+
+  .match-result {
+    @apply ml-auto flex items-center gap-x-1 text-tiny;
+  }
+
+  .report-btn {
+    @apply rounded px-2 py-0.5 font-medium transition;
+    @apply bg-gray-100 text-gray-600 hover:bg-gray-200;
+  }
+
+  :global(.dark) .report-btn {
+    @apply bg-gray-700 text-gray-300 hover:bg-gray-600;
   }
 </style>

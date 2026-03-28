@@ -79,8 +79,8 @@
 >
   {#if ['/game', '/box', '/graveyard'].includes(path)}
     <GameHeading />
-  {:else if isMpRoute && path.includes('/play')}
-    <!-- MP play page has its own nav -->
+  {:else if isMpRoute || path === '/'}
+    <!-- MP pages and homepage handle their own nav -->
   {:else}
     <NavHeading />
   {/if}

@@ -2,18 +2,15 @@
   export let id = 25
 
   import { createImgUrl } from '$utils/rewrites'
-
-  import { flip as animflip } from 'svelte/animate'
-  import { fly } from 'svelte/transition'
+  import { fly, fade } from 'svelte/transition'
   import { onMount } from 'svelte'
 
   import { trackData } from '$lib/store'
-  import { PixelatedContainer } from '$lib/components/containers'
-
-  import { Picture } from '$lib/components/core'
+  import { Picture, Button } from '$lib/components/core'
+  import ThemeToggle from '$lib/components/theme-toggle.svelte'
 
   const interval = 5000
-  const distance = 300
+  const distance = 200
 
   let flip = 0
   setInterval(() => {
@@ -21,17 +18,12 @@
     id = Math.round(Math.random() * 151)
   }, interval)
 
-  let links = [
-    { title: 'Multiplayer', href: '/mp', color: 'purple' },
-    { title: 'Guides', href: '/guides', color: 'green' }
-  ]
-
   onMount(() => {
     trackData()
   })
 
   let src
-  $: duration = Math.min(interval / 3, 1000)
+  $: duration = Math.min(interval / 3, 800)
   $: src = createImgUrl({ imgId: id }, { ext: 'png' })
 </script>
 
@@ -40,45 +32,19 @@
   <link rel="preload" as="image" href="/logo.png" />
 </svelte:head>
 
-<main>
-  <h1 aria-level="1" class="mx-auto text-center font-mono text-4xl">
-    Pokémon
-    <Picture
-      src="/logo"
-      loading="eager"
-      aspect="324x62"
-      pixelated
-      alt="Nuzlocke logo"
-      className="transition h-auto md:h-16 mt-2 mx-auto"
-    />
-    tracker
-  </h1>
+<div class="home-page">
+  <div class="theme-corner">
+    <ThemeToggle />
+  </div>
 
-  <div>
-    <PixelatedContainer className="container__index">
-      <div class="flex h-36 flex-col justify-center font-bold">
-        {#each links as { title, href, color, aria } (href)}
-          <a
-            animate:animflip
-            in:fly={{ x: -50 }}
-            class="group tracking-widest hover:drop-shadow-text {color}"
-            {href}
-            aria-label={aria}
-            data-sveltekit-preload-data
-            rel="external"
-          >
-            {title}
-          </a>
-        {/each}
-      </div>
-
-      <div class="img__container relative -mx-12 h-full">
+  <main>
+    <div class="hero">
+      <div class="pokemon-bg">
         {#if !flip}
           <img
             {src}
-            rel="external"
             alt="Pokemon #{id}"
-            class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
+            class="pokemon-sprite"
             out:fly={{ y: distance, duration }}
             in:fly={{ y: -distance, duration }}
           />
@@ -86,131 +52,121 @@
         {#if flip}
           <img
             {src}
-            rel="external"
             alt="Pokemon #{id}"
-            class="absolute right-0 -my-2 -ml-12 w-full transition md:-my-12"
+            class="pokemon-sprite"
             out:fly={{ y: distance, duration }}
             in:fly={{ y: -distance, duration }}
           />
         {/if}
       </div>
-    </PixelatedContainer>
-  </div>
 
-  <p>
-    Keep track of your Pokémon encounters across multiple Nuzlocke runs, and
-    prepare for Gym battles and Rival fights so you never wipe again! Get
-    insights into team match ups, compare stat blocks and get detail on Gym
-    movesets & abilities.
-  </p>
-</main>
+      <h1>
+        <span class="title-pokemon">Pokémon</span>
+        <Picture
+          src="/logo"
+          loading="eager"
+          aspect="324x62"
+          pixelated
+          alt="Nuzlocke Tracker"
+          className="logo-img"
+        />
+        <span class="title-tracker">Multiplayer Tracker</span>
+      </h1>
+
+      <p class="tagline">
+        Track encounters, plan for Gym battles, and compete with friends
+        in multiplayer Nuzlocke runs.
+      </p>
+
+      <div class="cta-group">
+        <a href="/mp" class="cta-primary" data-sveltekit-preload-data>
+          Play Multiplayer
+        </a>
+        <a href="/guides" class="cta-secondary" data-sveltekit-preload-data>
+          Guides
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
 
 <style lang="postcss">
+  .home-page {
+    @apply relative flex min-h-screen items-center justify-center overflow-hidden;
+  }
+
+  .theme-corner {
+    @apply absolute top-4 right-4 z-10;
+  }
+
   main {
-    @apply container mx-auto mt-16 flex flex-col justify-center;
+    @apply relative z-10 flex flex-col items-center px-6 py-16;
   }
 
-  @media (min-width: 640px) {
-    main {
-      @apply absolute top-1/2 left-1/2 -mt-8 -translate-y-1/2 -translate-x-1/2;
-    }
+  .hero {
+    @apply flex max-w-md flex-col items-center text-center;
   }
 
-  @media (min-height: 700px) {
-    main {
-      @apply absolute top-1/2 left-1/2 -mt-8 -translate-y-1/2 -translate-x-1/2;
-    }
+  .pokemon-bg {
+    @apply relative mb-6 h-32 w-32;
   }
 
-  main > div {
-    @apply mt-10 overflow-hidden py-7 px-6 sm:px-4;
+  .pokemon-sprite {
+    @apply absolute inset-0 h-full w-full object-contain;
+    image-rendering: pixelated;
   }
 
-  p {
-    @apply mx-auto mt-4 max-w-lg px-4 text-center text-tiny leading-4 text-gray-900;
+  h1 {
+    @apply flex flex-col items-center gap-y-1 font-mono;
   }
 
-  :global(.dark) p {
+  .title-pokemon {
+    @apply text-sm font-medium uppercase tracking-[0.3em] text-gray-500;
+  }
+
+  :global(.dark) .title-pokemon {
     @apply text-gray-400;
   }
 
-  :global(.container__index) {
-    @apply relative mx-auto flex h-full max-h-56 w-auto max-w-md items-center justify-evenly gap-y-2 py-8 font-mono text-3xl sm:flex-row;
+  h1 :global(.logo-img) {
+    @apply h-auto w-64 transition sm:w-72;
   }
 
-  @media (max-width: 640px) {
-    :global(.container__index > div) {
-      @apply -ml-8;
-    }
+  .title-tracker {
+    @apply mt-1 text-xs font-medium uppercase tracking-[0.2em] text-gray-400;
   }
 
-  .img__container {
-    @apply -mt-32;
-    width: theme('spacing.32');
+  :global(.dark) .title-tracker {
+    @apply text-gray-500;
   }
 
-  @media (min-width: 640px) {
-    .img__container {
-      width: theme('spacing.52');
-    }
+  .tagline {
+    @apply mt-5 max-w-xs text-sm leading-relaxed text-gray-600;
   }
 
-  img {
-    image-rendering: pixelated;
-    transition-duration: 300ms !important;
+  :global(.dark) .tagline {
+    @apply text-gray-400;
   }
 
-  .pink {
-    @apply hover:text-pink-500;
-  }
-  .blue {
-    @apply hover:text-blue-400;
-  }
-  .green {
-    @apply hover:text-green-400;
-  }
-  .yellow {
-    @apply hover:text-yellow-400;
-  }
-  .purple {
-    @apply hover:text-purple-400;
+  .cta-group {
+    @apply mt-8 flex flex-col gap-3 sm:flex-row;
   }
 
-  :global(.game--emkaizo),
-  :global(.game--fr),
-  :global(.game--sp),
-  :global(.game--bd) {
-    @apply -mr-2 -translate-x-1;
-  }
-  :global(.game--sw),
-  :global(.game--sh) {
-    @apply -mr-2 md:-mr-5 md:-translate-x-3;
+  .cta-primary {
+    @apply rounded-lg px-8 py-3 text-sm font-bold uppercase tracking-wider transition;
+    @apply bg-gray-900 text-white hover:bg-gray-700;
   }
 
-  :root {
-    --bob-delay: 0.2s;
+  :global(.dark) .cta-primary {
+    @apply bg-white text-gray-900 hover:bg-gray-200;
   }
 
-  .bob {
-    animation: bob 3s steps(1, end) var(--bob-delay) infinite;
+  .cta-secondary {
+    @apply rounded-lg border-2 px-8 py-3 text-sm font-bold uppercase tracking-wider transition;
+    @apply border-gray-300 text-gray-600 hover:border-gray-900 hover:text-gray-900;
   }
 
-  @keyframes bob {
-    5%,
-    15%,
-    25%,
-    35%,
-    45% {
-      transform: translateY(-3px);
-    }
-    ,
-    0%,
-    10%,
-    20%,
-    30%,
-    40%,
-    50% {
-      transform: translateY(0px);
-    }
+  :global(.dark) .cta-secondary {
+    @apply border-gray-600 text-gray-400 hover:border-white hover:text-white;
   }
 </style>

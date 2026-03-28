@@ -4,7 +4,6 @@
   export let mpGameId = ''
   export let ownPlayerId = ''
 
-  import { Expanded as Games } from '$lib/data/games'
   import { PIcon } from '$lib/components/core'
   import { parseGameData } from '$lib/mpStore'
 
@@ -22,21 +21,22 @@
   }
 </script>
 
-<div class="player-bar">
+<div class="switcher">
   {#each players as player}
     {@const team = getTeamSprites(player)}
+    {@const isActive = player.id === currentPlayerId}
+    {@const isOwn = player.id === ownPlayerId}
     <button
-      class="player-pill"
-      class:active={player.id === currentPlayerId}
-      class:own={player.id === ownPlayerId}
+      class="pill"
+      class:active={isActive}
       on:click={() => switchTo(player.id)}
-      title="{player.name}{player.id === ownPlayerId ? ' (You)' : ''}"
+      title="{player.name}{isOwn ? ' (You)' : ''}"
     >
-      <span class="pill-name">{player.name}</span>
+      <span class="pill-name" class:font-bold={isOwn}>{player.name}</span>
       {#if team.length > 0}
         <span class="pill-team">
           {#each team as mon}
-            <PIcon name={mon} className="-m-2.5 scale-[0.6]" />
+            <PIcon name={mon} className="-m-2.5 scale-[0.55]" />
           {/each}
         </span>
       {/if}
@@ -45,37 +45,32 @@
 </div>
 
 <style lang="postcss">
-  .player-bar {
-    @apply flex gap-1.5 overflow-x-auto px-1 py-1;
+  .switcher {
+    @apply flex gap-1 overflow-x-auto;
     scrollbar-width: none;
   }
 
-  .player-bar::-webkit-scrollbar {
+  .switcher::-webkit-scrollbar {
     display: none;
   }
 
-  .player-pill {
-    @apply flex shrink-0 items-center gap-x-1 rounded-full px-3 py-1 text-xs font-medium transition;
-    @apply border border-gray-200 bg-white text-gray-700 hover:bg-gray-50;
+  .pill {
+    @apply flex shrink-0 items-center gap-x-0.5 rounded-full px-3 py-1 text-xs font-medium transition;
+    @apply text-gray-500 hover:text-gray-900;
   }
 
-  :global(.dark) .player-pill {
-    @apply border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700;
+  :global(.dark) .pill {
+    @apply text-gray-400 hover:text-white;
   }
 
-  .player-pill.active {
-    @apply border-blue-400 bg-blue-50 text-blue-700 ring-1 ring-blue-300;
+  .pill.active {
+    @apply text-gray-900;
+    @apply bg-gray-100;
   }
 
-  :global(.dark) .player-pill.active {
-    @apply border-blue-500 text-blue-300;
-    background-color: rgba(59, 130, 246, 0.15);
-    --tw-ring-color: rgba(59, 130, 246, 0.5);
-    @apply ring-1;
-  }
-
-  .player-pill.own .pill-name {
-    @apply font-bold;
+  :global(.dark) .pill.active {
+    @apply text-white;
+    @apply bg-gray-800;
   }
 
   .pill-name {

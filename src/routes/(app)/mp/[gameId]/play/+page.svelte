@@ -238,11 +238,13 @@
 </svelte:head>
 
 {#if loading}
-  <Loader />
+  <div class="loading-center">
+    <Loader />
+  </div>
 {:else if error}
-  <div class="container mx-auto pt-24 text-center">
+  <div class="error-center">
     <p class="text-red-600 dark:text-red-400">{error}</p>
-    <a href="/mp/{mpGameId}" class="mt-4 inline-block text-blue-600 underline dark:text-blue-400">Back to Lobby</a>
+    <a href="/mp/{mpGameId}" class="mt-4 inline-block text-sm text-blue-500 underline">Back to Lobby</a>
   </div>
 {:else if gameData && route}
   <MpNav
@@ -257,122 +259,149 @@
 
   <div
     id="mp_game_el"
-    out:fade|local={{ duration: 250 }}
-    in:fade|local={{ duration: 250, delay: 300 }}
-    class="container mx-auto overflow-hidden pb-24"
+    class="game-container"
+    out:fade|local={{ duration: 200 }}
+    in:fade|local={{ duration: 200, delay: 250 }}
   >
-    <div class="flex snap-start flex-row flex-wrap justify-center pb-16">
-      <main
-        id="main"
-        class="p-container relative flex flex-col gap-y-4 md:py-6"
-      >
-        {#if !isOwner}
-          <div class="rounded border border-yellow-500/30 bg-yellow-500/10 p-2 text-center text-sm text-yellow-400">
-            Viewing {playerInfo?.name}'s game (read-only)
-          </div>
-        {/if}
+    <main id="main" class="game-main">
+      {#if !isOwner}
+        <div class="view-only-banner">
+          Viewing {playerInfo?.name}'s game (read-only)
+        </div>
+      {/if}
 
-        <div
-          class="flex snap-y snap-start snap-always flex-col items-start justify-between gap-y-4 pt-14 md:mb-6 md:flex-row md:pt-14 lg:gap-y-0"
-        >
-          <div class="flex w-full flex-col gap-y-2">
-            {#if filter === 'nuzlocke'}
-              <button
-                transition:slide={{ duration: 250 }}
-                class="inline-flex items-center text-sm"
-                on:click={routeEl?.setroute(latestnav(route, gameData))}
-              >
-                Continue at {latestnav(route, gameData).name}
-                <Icon inline={true} class="ml-1 fill-current" icon={Arrow} />
-              </button>
-            {/if}
+      <div class="controls-row">
+        <div class="flex w-full flex-col gap-y-2">
+          {#if filter === 'nuzlocke'}
+            <button
+              transition:slide={{ duration: 250 }}
+              class="continue-btn"
+              on:click={routeEl?.setroute(latestnav(route, gameData))}
+            >
+              Continue at {latestnav(route, gameData).name}
+              <Icon inline={true} class="ml-1 fill-current" icon={Arrow} />
+            </button>
+          {/if}
 
-            <Tabs name="filter" tabs={filters} bind:selected={filter} />
+          <Tabs name="filter" tabs={filters} bind:selected={filter} />
 
-            {#if filter === 'bosses'}
-              <span transition:slide={{ duration: 250 }}>
-                <Tabs
-                  name="bosses"
-                  tabs={bossFilters}
-                  bind:selected={bossFilter}
-                />
-              </span>
-            {/if}
+          {#if filter === 'bosses'}
+            <span transition:slide={{ duration: 250 }}>
+              <Tabs name="bosses" tabs={bossFilters} bind:selected={bossFilter} />
+            </span>
+          {/if}
 
-            {#if filter === 'route'}
-              <span transition:slide={{ duration: 250 }}>
-                <Tabs
-                  name="route"
-                  tabs={routeFilters}
-                  bind:selected={routeFilter}
-                />
-              </span>
-            {/if}
+          {#if filter === 'route'}
+            <span transition:slide={{ duration: 250 }}>
+              <Tabs name="route" tabs={routeFilters} bind:selected={routeFilter} />
+            </span>
+          {/if}
 
-            {#if filter === 'upcoming'}
-              <span
-                transition:slide={{ duration: 250 }}
-                class="-mb-4 inline-block text-sm leading-5 tracking-tight dark:text-gray-400"
-              >
-                <Icon
-                  inline={true}
-                  height="1.2em"
-                  icon={Hide}
-                  class="-mt-1 mr-1 inline-block fill-current"
-                /><b>{latestnav(route, gameData).id}</b> items hidden
-              </span>
-            {/if}
-          </div>
-
-          {#if isOwner}
-            <div class="inline-flex">
-              <Settings />
-              <div class="fixed bottom-6 max-md:z-[8888] md:relative md:bottom-0">
-                <Search on:search={onsearch} />
-              </div>
-            </div>
+          {#if filter === 'upcoming'}
+            <span
+              transition:slide={{ duration: 250 }}
+              class="hidden-count"
+            >
+              <Icon inline={true} height="1.2em" icon={Hide} class="-mt-1 mr-1 inline-block fill-current" />
+              <b>{latestnav(route, gameData).id}</b> items hidden
+            </span>
           {/if}
         </div>
 
-        <GameRoute
-          {route}
-          {search}
-          filters={{ main: filter, boss: bossFilter, route: routeFilter }}
-          bind:this={routeEl}
-          className="-mt-8 sm:mt-0"
-          game={{ data: gameData, store: gameStore, key: gameKey }}
-          progress={latestnav(route, gameData).id}
-          {defeatedByMap}
-          mpPlayers={$mpPlayers}
-          mpPvpBattles={$mpPvpBattles}
-          currentPlayerId={viewingPlayerId}
-          {isOwner}
-          pincode={session?.pincode || ''}
-          on:report={handlePvpReport}
-        />
-      </main>
-    </div>
+        {#if isOwner}
+          <div class="owner-tools">
+            <Settings />
+            <div class="search-float">
+              <Search on:search={onsearch} />
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <GameRoute
+        {route}
+        {search}
+        filters={{ main: filter, boss: bossFilter, route: routeFilter }}
+        bind:this={routeEl}
+        className="-mt-8 sm:mt-0"
+        game={{ data: gameData, store: gameStore, key: gameKey }}
+        progress={latestnav(route, gameData).id}
+        {defeatedByMap}
+        mpPlayers={$mpPlayers}
+        mpPvpBattles={$mpPvpBattles}
+        currentPlayerId={viewingPlayerId}
+        {isOwner}
+        pincode={session?.pincode || ''}
+        on:report={handlePvpReport}
+      />
+    </main>
   </div>
 {/if}
 
 <style lang="postcss">
-  :global(html, body) {
-    @apply max-md:overflow-hidden;
+  .loading-center {
+    @apply flex min-h-screen items-center justify-center;
+  }
+
+  .error-center {
+    @apply flex min-h-screen flex-col items-center justify-center text-center;
+  }
+
+  .game-container {
+    @apply container mx-auto overflow-hidden px-4 pt-24 pb-24;
   }
 
   @media (max-width: theme('screens.md')) {
-    .container ~ :global(footer) {
+    .game-container {
+      height: 100vh;
+      overflow-y: scroll;
+      @apply pt-28;
+    }
+
+    .game-container ~ :global(footer) {
       display: none;
     }
 
-    .container {
-      height: 100vh;
-      overflow-y: scroll;
+    :global(html, body) {
+      @apply overflow-hidden;
     }
   }
 
-  .container {
-    min-height: 100%;
-    @apply snap-y snap-always;
+  .game-main {
+    @apply mx-auto flex max-w-3xl flex-col gap-y-4;
+  }
+
+  .view-only-banner {
+    @apply rounded-lg border px-3 py-2 text-center text-sm;
+    @apply border-yellow-300 bg-yellow-50 text-yellow-700;
+  }
+
+  :global(.dark) .view-only-banner {
+    @apply border-yellow-700 bg-yellow-900/20 text-yellow-400;
+  }
+
+  .controls-row {
+    @apply flex flex-col items-start justify-between gap-y-4 md:flex-row;
+  }
+
+  .continue-btn {
+    @apply inline-flex items-center text-sm text-gray-600 transition hover:text-gray-900;
+  }
+
+  :global(.dark) .continue-btn {
+    @apply text-gray-400 hover:text-white;
+  }
+
+  .hidden-count {
+    @apply -mb-4 inline-block text-sm leading-5 tracking-tight;
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  .owner-tools {
+    @apply inline-flex shrink-0;
+  }
+
+  .search-float {
+    @apply fixed bottom-6 max-md:z-[8888] md:relative md:bottom-0;
   }
 </style>

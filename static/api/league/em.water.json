@@ -6,7 +6,7 @@
     "pokemon": [
       {
         "name": "geodude",
-        "level": "12",
+        "level": "16",
         "moves": [
           {
             "power": 40,
@@ -56,7 +56,7 @@
       },
       {
         "name": "geodude",
-        "level": "12",
+        "level": "16",
         "moves": [
           {
             "power": 40,
@@ -106,7 +106,7 @@
       },
       {
         "name": "nosepass",
-        "level": "15",
+        "level": "20",
         "moves": [
           {
             "type": "normal",
@@ -161,7 +161,7 @@
     "pokemon": [
       {
         "name": "machop",
-        "level": "16",
+        "level": "20",
         "moves": [
           {
             "power": 50,
@@ -208,7 +208,7 @@
       },
       {
         "name": "meditite",
-        "level": "16",
+        "level": "20",
         "moves": [
           {
             "power": 150,
@@ -257,7 +257,7 @@
       },
       {
         "name": "makuhita",
-        "level": "19",
+        "level": "24",
         "moves": [
           {
             "power": 15,
@@ -318,7 +318,7 @@
     "pokemon": [
       {
         "name": "voltorb",
-        "level": "20",
+        "level": "23",
         "moves": [
           {
             "power": 30,
@@ -368,7 +368,7 @@
       },
       {
         "name": "electrike",
-        "level": "20",
+        "level": "23",
         "moves": [
           {
             "power": 60,
@@ -417,7 +417,7 @@
       },
       {
         "name": "magneton",
-        "level": "22",
+        "level": "26",
         "moves": [
           {
             "type": "normal",
@@ -465,7 +465,7 @@
       },
       {
         "name": "manectric",
-        "level": "24",
+        "level": "28",
         "moves": [
           {
             "power": 40,
@@ -526,7 +526,7 @@
     "pokemon": [
       {
         "name": "numel",
-        "level": "24",
+        "level": "27",
         "moves": [
           {
             "power": 130,
@@ -575,7 +575,7 @@
       },
       {
         "name": "slugma",
-        "level": "24",
+        "level": "27",
         "moves": [
           {
             "power": 130,
@@ -623,7 +623,7 @@
       },
       {
         "name": "camerupt",
-        "level": "26",
+        "level": "30",
         "moves": [
           {
             "power": 130,
@@ -672,7 +672,7 @@
       },
       {
         "name": "torkoal",
-        "level": "29",
+        "level": "33",
         "moves": [
           {
             "power": 130,
@@ -732,7 +732,7 @@
     "pokemon": [
       {
         "name": "spinda",
-        "level": "27",
+        "level": "30",
         "moves": [
           {
             "type": "normal",
@@ -780,7 +780,7 @@
       },
       {
         "name": "vigoroth",
-        "level": "27",
+        "level": "30",
         "moves": [
           {
             "power": 70,
@@ -829,7 +829,7 @@
       },
       {
         "name": "linoone",
-        "level": "29",
+        "level": "33",
         "moves": [
           {
             "power": 70,
@@ -878,7 +878,7 @@
       },
       {
         "name": "slaking",
-        "level": "31",
+        "level": "35",
         "moves": [
           {
             "type": "fighting",
@@ -939,7 +939,7 @@
     "pokemon": [
       {
         "name": "swablu",
-        "level": "29",
+        "level": "33",
         "moves": [
           {
             "type": "normal",
@@ -987,7 +987,7 @@
       },
       {
         "name": "tropius",
-        "level": "29",
+        "level": "33",
         "moves": [
           {
             "type": "fire",
@@ -1036,7 +1036,7 @@
       },
       {
         "name": "pelipper",
-        "level": "30",
+        "level": "35",
         "moves": [
           {
             "power": 40,
@@ -1086,7 +1086,7 @@
       },
       {
         "name": "skarmory",
-        "level": "31",
+        "level": "36",
         "moves": [
           {
             "type": "ground",
@@ -1136,7 +1136,7 @@
       },
       {
         "name": "altaria",
-        "level": "33",
+        "level": "38",
         "moves": [
           {
             "power": 100,
@@ -1198,7 +1198,7 @@
     "pokemon": [
       {
         "name": "claydol",
-        "level": "41",
+        "level": "43",
         "moves": [
           {
             "power": 100,
@@ -1248,7 +1248,7 @@
       },
       {
         "name": "xatu",
-        "level": "41",
+        "level": "43",
         "moves": [
           {
             "power": 90,
@@ -1296,7 +1296,7 @@
       },
       {
         "name": "lunatone",
-        "level": "42",
+        "level": "44",
         "moves": [
           {
             "type": "psychic",
@@ -1349,7 +1349,7 @@
       },
       {
         "name": "solrock",
-        "level": "42",
+        "level": "44",
         "moves": [
           {
             "type": "fire",
@@ -1412,7 +1412,7 @@
     "pokemon": [
       {
         "name": "luvdisc",
-        "level": "41",
+        "level": "42",
         "moves": [
           {
             "power": 60,
@@ -1459,7 +1459,7 @@
       },
       {
         "name": "whiscash",
-        "level": "41",
+        "level": "42",
         "moves": [
           {
             "type": "water",
@@ -1508,7 +1508,7 @@
       },
       {
         "name": "sealeo",
-        "level": "43",
+        "level": "44",
         "moves": [
           {
             "type": "normal",
@@ -1558,7 +1558,7 @@
       },
       {
         "name": "crawdaunt",
-        "level": "43",
+        "level": "44",
         "moves": [
           {
             "power": 60,
@@ -1607,7 +1607,7 @@
       },
       {
         "name": "kingdra",
-        "level": "46",
+        "level": "47",
         "moves": [
           {
             "power": 60,
@@ -4012,7 +4012,7 @@
     "pokemon": [
       {
         "name": "mightyena",
-        "level": "46",
+        "level": "49",
         "moves": [
           {
             "type": "normal",
@@ -4061,7 +4061,7 @@
       },
       {
         "name": "shiftry",
-        "level": "48",
+        "level": "51",
         "moves": [
           {
             "type": "dark",
@@ -4109,7 +4109,7 @@
       },
       {
         "name": "cacturne",
-        "level": "46",
+        "level": "49",
         "moves": [
           {
             "type": "grass",
@@ -4158,7 +4158,7 @@
       },
       {
         "name": "crawdaunt",
-        "level": "48",
+        "level": "51",
         "moves": [
           {
             "power": 90,
@@ -4208,7 +4208,7 @@
       },
       {
         "name": "absol",
-        "level": "49",
+        "level": "52",
         "moves": [
           {
             "power": 60,
@@ -4269,7 +4269,7 @@
     "pokemon": [
       {
         "name": "dusclops",
-        "level": "48",
+        "level": "51",
         "moves": [
           {
             "power": 60,
@@ -4317,7 +4317,7 @@
       },
       {
         "name": "banette",
-        "level": "49",
+        "level": "52",
         "moves": [
           {
             "power": 80,
@@ -4365,7 +4365,7 @@
       },
       {
         "name": "sableye",
-        "level": "50",
+        "level": "53",
         "moves": [
           {
             "power": 80,
@@ -4414,7 +4414,7 @@
       },
       {
         "name": "banette",
-        "level": "49",
+        "level": "52",
         "moves": [
           {
             "power": 80,
@@ -4464,7 +4464,7 @@
       },
       {
         "name": "dusclops",
-        "level": "51",
+        "level": "54",
         "moves": [
           {
             "power": 80,
@@ -4526,7 +4526,7 @@
     "pokemon": [
       {
         "name": "sealeo",
-        "level": "50",
+        "level": "53",
         "moves": [
           {
             "type": "normal",
@@ -4575,7 +4575,7 @@
       },
       {
         "name": "glalie",
-        "level": "50",
+        "level": "53",
         "moves": [
           {
             "type": "psychic",
@@ -4624,7 +4624,7 @@
       },
       {
         "name": "sealeo",
-        "level": "52",
+        "level": "55",
         "moves": [
           {
             "type": "normal",
@@ -4669,7 +4669,7 @@
       },
       {
         "name": "glalie",
-        "level": "52",
+        "level": "55",
         "moves": [
           {
             "power": 80,
@@ -4718,7 +4718,7 @@
       },
       {
         "name": "walrein",
-        "level": "53",
+        "level": "56",
         "moves": [
           {
             "power": 90,
@@ -4780,7 +4780,7 @@
     "pokemon": [
       {
         "name": "shelgon",
-        "level": "52",
+        "level": "55",
         "moves": [
           {
             "power": 60,
@@ -4830,7 +4830,7 @@
       },
       {
         "name": "altaria",
-        "level": "54",
+        "level": "57",
         "moves": [
           {
             "power": 120,
@@ -4880,7 +4880,7 @@
       },
       {
         "name": "kingdra",
-        "level": "53",
+        "level": "56",
         "moves": [
           {
             "type": "normal",
@@ -4929,7 +4929,7 @@
       },
       {
         "name": "flygon",
-        "level": "53",
+        "level": "56",
         "moves": [
           {
             "power": 90,
@@ -4980,7 +4980,7 @@
       },
       {
         "name": "salamence",
-        "level": "55",
+        "level": "58",
         "moves": [
           {
             "power": 90,
@@ -5043,7 +5043,7 @@
     "pokemon": [
       {
         "name": "wailord",
-        "level": "57",
+        "level": "98",
         "moves": [
           {
             "type": "water",
@@ -5092,7 +5092,7 @@
       },
       {
         "name": "tentacruel",
-        "level": "55",
+        "level": "95",
         "moves": [
           {
             "type": "poison",
@@ -5142,7 +5142,7 @@
       },
       {
         "name": "ludicolo",
-        "level": "56",
+        "level": "97",
         "moves": [
           {
             "power": 75,
@@ -5191,7 +5191,7 @@
       },
       {
         "name": "whiscash",
-        "level": "56",
+        "level": "97",
         "moves": [
           {
             "power": 100,
@@ -5241,7 +5241,7 @@
       },
       {
         "name": "gyarados",
-        "level": "56",
+        "level": "97",
         "moves": [
           {
             "type": "dragon",
@@ -5291,7 +5291,7 @@
       },
       {
         "name": "milotic",
-        "level": "58",
+        "level": "100",
         "moves": [
           {
             "type": "normal",

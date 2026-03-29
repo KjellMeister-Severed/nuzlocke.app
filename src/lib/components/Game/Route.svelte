@@ -50,20 +50,6 @@
   const dispatch = createEventDispatcher()
   $: isMpMode = mpPlayers.length >= 2
 
-  $: pvpLockedAfterIndex = (() => {
-    if (!isMpMode) return -1
-    const totalPairings = (mpPlayers.length * (mpPlayers.length - 1)) / 2
-    for (let i = 0; i < routeList.length; i++) {
-      const p = routeList[i]
-      if (isGym(p) && (p.group === 'gym-leader' || p.group === 'elite-four')) {
-        const bossBattles = mpPvpBattles.filter((b) => b.boss_id === p.value)
-        const completedCount = bossBattles.filter((b) => b.winner_id).length
-        if (completedCount < totalPairings) return i
-      }
-    }
-    return -1
-  })()
-
   const { store, key, data } = game
 
   let starter = data.__starter || 'fire'
@@ -144,8 +130,6 @@
 <ul bind:this={ulRef} class="route-list {className}">
   {#each routeList as p, id (locid(p, id))}
     {@const hidden = !filterEntry(filters, search, game.data, progress - 1)(p)}
-    {@const pvpLocked =
-      isMpMode && pvpLockedAfterIndex >= 0 && id > pvpLockedAfterIndex}
 
     {#if isStarter(p)}
       <li
@@ -181,23 +165,16 @@
         in:fade
         out:fade={{ duration: 100 }}
         class:hidden={hidden || !showRoute(p, filters, hideRoute)}
-        class:route-list__item--locked={pvpLocked}
       >
-        {#if pvpLocked}
-          <div class="route-list__gate">
-            <span>Complete PvP battles to unlock</span>
-          </div>
-        {:else}
-          <PokemonSelector
-            {id}
-            {store}
-            infolink={toDbLocation(key, p.name)}
-            location={p.name}
-            encounters={p.encounters}
-            on:hide={onhidelocation}
-            on:new={onnewlocation}
-          />
-        {/if}
+        <PokemonSelector
+          {id}
+          {store}
+          infolink={toDbLocation(key, p.name)}
+          location={p.name}
+          encounters={p.encounters}
+          on:hide={onhidelocation}
+          on:new={onnewlocation}
+        />
       </li>
     {:else if isCustom(p)}
       <li
@@ -206,27 +183,20 @@
         in:fade
         out:fade={{ duration: 100 }}
         class:hidden={hidden || !showCustom(p, filters, hideRoute)}
-        class:route-list__item--locked={pvpLocked}
       >
-        {#if pvpLocked}
-          <div class="route-list__gate">
-            <span>Complete PvP battles to unlock</span>
-          </div>
-        {:else}
-          <PokemonSelector
-            type="custom"
-            locationName={p.name}
-            location={p.id}
-            {id}
-            {store}
-            on:new={onnewlocation}
-            on:delete={ondeletelocation}
-          >
-            <svelte:fragment slot="location">
-              <CustomLocation {store} id={p.id} />
-            </svelte:fragment>
-          </PokemonSelector>
-        {/if}
+        <PokemonSelector
+          type="custom"
+          locationName={p.name}
+          location={p.id}
+          {id}
+          {store}
+          on:new={onnewlocation}
+          on:delete={ondeletelocation}
+        >
+          <svelte:fragment slot="location">
+            <CustomLocation {store} id={p.id} />
+          </svelte:fragment>
+        </PokemonSelector>
       </li>
     {:else if isGym(p)}
       <li
@@ -314,27 +284,6 @@
     .route-list__item--boss {
       margin: 0.75rem 0;
     }
-  }
-
-  .route-list__item--locked {
-    pointer-events: none;
-    opacity: 0.3;
-  }
-
-  .route-list__gate {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.625rem 1rem;
-    border: 1px dashed theme('colors.gray.300');
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    color: theme('colors.gray.400');
-  }
-
-  :global(.dark) .route-list__gate {
-    border-color: theme('colors.gray.600');
-    color: theme('colors.gray.500');
   }
 
   .route-list__starter-loc {

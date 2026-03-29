@@ -138,7 +138,11 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(168, 85, 247, 0.4));
+    background: linear-gradient(
+      180deg,
+      rgba(99, 102, 241, 0.6),
+      rgba(168, 85, 247, 0.4)
+    );
     border-radius: 3px 0 0 3px;
   }
 
@@ -153,7 +157,11 @@
   }
 
   .pvp--done::before {
-    background: linear-gradient(180deg, rgba(34, 197, 94, 0.7), rgba(22, 163, 74, 0.5));
+    background: linear-gradient(
+      180deg,
+      rgba(34, 197, 94, 0.7),
+      rgba(22, 163, 74, 0.5)
+    );
   }
 
   :global(.dark) .pvp--done {
